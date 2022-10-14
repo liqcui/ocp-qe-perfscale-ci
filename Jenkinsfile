@@ -127,7 +127,7 @@ pipeline {
       steps{
         script{
           if(params.SCALE_UP.toInteger() > 0) {
-            build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling/', parameters: [string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), text(name: "ENV_VARS", value: ENV_VARS), string(name: 'WORKER_COUNT', value: SCALE_UP), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL)]
+            build job: 'scale-ci/liqcui-e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling/', parameters: [string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), text(name: "ENV_VARS", value: ENV_VARS), string(name: 'WORKER_COUNT', value: SCALE_UP), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL)]
           }
         }
         deleteDir()
@@ -162,7 +162,11 @@ pipeline {
             # Export those env vars so they could be used by CI Job
             set -a && source .env_override && set +a
             mkdir -p ~/.kube
-            cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+            if [ -z $KUBE_CONFIG ];then
+                 cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+            else
+                 curl $KUBE_CONFIG >~/.kube/config
+            fi
             oc config view
             oc projects
             ls -ls ~/.kube/
@@ -189,7 +193,7 @@ pipeline {
 
         script{
             if(params.CERBERUS_CHECK == true) {
-                cerberus_job = build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cerberus',
+                cerberus_job = build job: 'scale-ci/liqcui-e2e-benchmarking-multibranch-pipeline/cerberus',
                     parameters: [
                         string(name: 'BUILD_NUMBER', value: BUILD_NUMBER),text(name: "ENV_VARS", value: ENV_VARS),
                         string(name: "CERBERUS_ITERATIONS", value: "1"), string(name: "CERBERUS_WATCH_NAMESPACES", value: "[^.*\$]"),
@@ -212,7 +216,7 @@ pipeline {
         script{
             def parameter_to_pass = NETWORK_POLICY + "," + WORKLOAD_TYPE
            if(params.WRITE_TO_FILE == true) {
-            build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/write-scale-ci-results',
+            build job: 'scale-ci/liqcui-e2e-benchmarking-multibranch-pipeline/write-scale-ci-results',
                 parameters: [
                     string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), string(name: 'CI_JOB_ID', value: BUILD_ID),
                     string(name: 'CI_JOB_URL', value: BUILD_URL), text(name: "ENV_VARS", value: ENV_VARS),
@@ -227,7 +231,7 @@ pipeline {
         script{
           // if the build fails, scale down will not happen, letting user review and decide if cluster is ready for scale down or re-run the job on same cluster
           if(params.SCALE_DOWN.toInteger() > 0) {
-            build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling', parameters: [string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), string(name: 'WORKER_COUNT', value: SCALE_DOWN), text(name: "ENV_VARS", value: ENV_VARS), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL)]
+            build job: 'scale-ci/liqcui-e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling', parameters: [string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), string(name: 'WORKER_COUNT', value: SCALE_DOWN), text(name: "ENV_VARS", value: ENV_VARS), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL)]
           }
 
         }
