@@ -80,6 +80,16 @@ pipeline {
       defaultValue: false, 
       description: 'Check cluster health status pass (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/cerberus/>cerberus</a>)'
     )
+    booleanParam(
+        name: 'MUST_GATHER', 
+        defaultValue: true, 
+        description: 'This variable will run must-gather if any cerberus components fail'
+    )
+    booleanParam(
+          name: "SEND_SLACK",
+          defaultValue: false,
+          description: "Check this box to send a Slack notification to #ocp-qe-scale-ci-results upon the job's completion"
+      )
     string(
       name:'JENKINS_AGENT_LABEL',
       defaultValue:'oc410',
@@ -152,13 +162,15 @@ pipeline {
           buildinfo.params.each { env.setProperty(it.key, it.value) }
         }
         script {
-          withCredentials([file(credentialsId: 'sa-google-sheet', variable: 'GSHEET_KEY_LOCATION')]) {
+          withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
+            file(credentialsId: 'sa-google-sheet', variable: 'GSHEET_KEY_LOCATION')]) {
             RETURNSTATUS = sh(returnStatus: true, script: '''
             # Get ENV VARS Supplied by the user to this job and store in .env_override
             echo "$ENV_VARS" > .env_override
             cp $GSHEET_KEY_LOCATION $WORKSPACE/.gsheet.json
             export GSHEET_KEY_LOCATION=$WORKSPACE/.gsheet.json
             export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
+            export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
             # Export those env vars so they could be used by CI Job
             set -a && source .env_override && set +a
             mkdir -p ~/.kube
@@ -198,7 +210,8 @@ pipeline {
                         string(name: 'BUILD_NUMBER', value: BUILD_NUMBER),text(name: "ENV_VARS", value: ENV_VARS),
                         string(name: "CERBERUS_ITERATIONS", value: "1"), string(name: "CERBERUS_WATCH_NAMESPACES", value: "[^.*\$]"),
                         string(name: 'CERBERUS_IGNORE_PODS', value: "[^installer*, ^kube-burner*, ^redhat-operators*, ^certified-operators*]"),
-                        string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL),booleanParam(name: "INSPECT_COMPONENTS", value: true)
+                        string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL),booleanParam(name: "INSPECT_COMPONENTS", value: true),
+                        booleanParam(name: "MUST_GATHER", value: MUST_GATHER)
                     ],
                     propagate: false
                 if( status == "PASS") {
@@ -237,5 +250,18 @@ pipeline {
         }
       }
     }
+  }
+  post {
+      always {
+          script {
+              if (params.SEND_SLACK == true ) {
+                      build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/post-to-slack',
+                      parameters: [
+                          string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), string(name: 'WORKLOAD', value: "network-perf"),
+                          text(name: "BUILD_URL", value: env.BUILD_URL), string(name: 'BUILD_ID', value: currentBuild.number.toString()),string(name: 'RESULT', value:currentBuild.currentResult)
+                      ], propagate: false
+              }
+          }
+      }
   }
 }
