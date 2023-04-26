@@ -40,7 +40,7 @@ pipeline {
       choice(
           name: 'WORKLOAD',
           choices: ["mixed-workload","statefulset","deployment"],
-          description: 'Type of storage-perf job to run'
+          description: 'Type of storage-csi-perf job to run'
       )
       booleanParam(
           name: 'WRITE_TO_FILE',
@@ -67,8 +67,8 @@ pipeline {
           defaultValue: '400', 
           description: '''
           This variable configures parameter needed for each type of workload. By default 400.<br>
-          storage-perf: This will export TOTAL_WORKLOAD env variable; Due to statefulset and deployment exercise different behavior from attach-detach controllers. For mixed-workload, 1 statefulset with 200 replicas and 200 deployments with 2 replica will be created. For statefulset, each POD(replicas) will mount one pvc and pv. For deployment, two pod of each deployment will mount a shared pvc and pv. set to 20 * num_workers, work up to 25 * num_workers. Creates as 600 "nginx" pods with 400 pvc/pv as configured in this environment variable.<br>
-          Read <a href=https://github.com/openshift-qe/ocp-qe-perfscale-ci/tree/storage-perf/README.md>here</a> for details about each variable
+          storage-csi-perf: This will export TOTAL_WORKLOAD env variable; Due to statefulset and deployment exercise different behavior from attach-detach controllers. For mixed-workload, 1 statefulset with 200 replicas and 200 deployments with 2 replica will be created. For statefulset, each POD(replicas) will mount one pvc and pv. For deployment, two pod of each deployment will mount a shared pvc and pv. set to 20 * num_workers, work up to 25 * num_workers. Creates as 600 "nginx" pods with 400 pvc/pv as configured in this environment variable.<br>
+          Read <a href=https://github.com/openshift-qe/ocp-qe-perfscale-ci/tree/storage-csi-perf/README.md>here</a> for details about each variable
           '''
       )
       separator(
@@ -117,7 +117,7 @@ pipeline {
       booleanParam(
           name: 'CHURN',
           defaultValue: true,
-          description: '''Run churn at end of original iterations. <a href=https://github.com/cloud-bulldozer/e2e-benchmarking/tree/master/workloads/storage-perf#churn>Churning</a> allows you to scale down and then up a percentage of JOB_ITERATIONS after the objects have been created <br>
+          description: '''Run churn at end of original iterations. <a href=https://github.com/cloud-bulldozer/e2e-benchmarking/tree/master/workloads/storage-csi-perf#churn>Churning</a> allows you to scale down and then up a percentage of JOB_ITERATIONS after the objects have been created <br>
           Use the following variables in ENV_VARS to set specifics of churn: <br>
           CHURN_DURATION=60m  <br>
           CHURN_PERCENT=20 <br>
@@ -280,7 +280,7 @@ pipeline {
                         mkdir -p ~/.kube
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         ls -ls ~/.kube/
-                        cd workloads/storage-perf
+                        cd workloads/storage-csi-perf
                         python3.9 --version
                         python3.9 -m pip install virtualenv
                         python3.9 -m virtualenv venv3
@@ -294,11 +294,11 @@ pipeline {
                         set -o pipefail
                         pwd
                         echo "workspace $WORKSPACE"
-                        ./run-scaleup-workload.sh |& tee "storage-perf.out"
+                        ./run-scaleup-workload.sh |& tee "storage-csi-perf.out"
                     ''')
-                    output = sh(returnStdout: true, script: 'cat workloads/storage-perf/storage-perf.out')
+                    output = sh(returnStdout: true, script: 'cat workloads/storage-csi-perf/storage-csi-perf.out')
                     archiveArtifacts(
-                        artifacts: 'workloads/storage-perf/storage-perf.out',
+                        artifacts: 'workloads/storage-csi-perf/storage-csi-perf.out',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
@@ -323,7 +323,7 @@ pipeline {
                     parameters: [
                         string(name: 'BUILD_NUMBER', value: BUILD_NUMBER),text(name: "ENV_VARS", value: ENV_VARS),
                         string(name: "CERBERUS_ITERATIONS", value: "1"), string(name: "CERBERUS_WATCH_NAMESPACES", value: "[^.*\$]"),
-                        string(name: 'CERBERUS_IGNORE_PODS', value: "[^installer*, ^storage-perf*, ^redhat-operators*, ^certified-operators*]"),
+                        string(name: 'CERBERUS_IGNORE_PODS', value: "[^installer*, ^storage-csi-perf*, ^redhat-operators*, ^certified-operators*]"),
                         string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL),booleanParam(name: "INSPECT_COMPONENTS", value: true),
                         string(name: "WORKLOAD", value: WORKLOAD),booleanParam(name: "MUST_GATHER", value: MUST_GATHER)
                     ],
