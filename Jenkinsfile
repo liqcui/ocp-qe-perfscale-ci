@@ -39,8 +39,8 @@ pipeline {
       )
       choice(
           name: 'WORKLOAD',
-          choices: ["cluster-density", "cluster-density-ms","node-density", "node-density-heavy","node-density-cni","node-density-cni-networkpolicy","pod-density", "pod-density-heavy", "max-namespaces", "max-services", "concurrent-builds","pods-service-route","networkpolicy-case1","networkpolicy-case2","networkpolicy-case3"],
-          description: 'Type of kube-burner job to run'
+          choices: ["mixed-workload","statefulset","deployment"],
+          description: 'Type of storage-perf job to run'
       )
       booleanParam(
           name: 'WRITE_TO_FILE',
@@ -64,24 +64,11 @@ pipeline {
         )
       string(
           name: 'VARIABLE',
-          defaultValue: '1000', 
+          defaultValue: '400', 
           description: '''
-          This variable configures parameter needed for each type of workload. By default 1000.<br>
-          pod-density: This will export PODS env variable; set to 200 * num_workers, work up to 250 * num_workers. Creates as many "sleep" pods as configured in this environment variable.<br>
-          pod-density-heavy: This will export PODS_PER_NODE env variable; set to 200, work up to 250. Creates as many hello-openshift application as configured in this variable*NODE_COUNT - existing number of pods on node - 1.<br>
-          cluster-density: This will export JOB_ITERATIONS env variable; set to 9 * num_workers. This variable sets the number of iterations to perform (1 namespace per iteration).<br>
-          cluster-density-ms: This will export JOB_ITERATIONS env variable; set to 9 * num_workers. This variable sets the number of iterations to perform (1 namespace per iteration).<br>
-          max-namespaces: This will export NAMESPACE_COUNT env variable; set to ~30 * num_workers. The number of namespaces created by Kube-burner.<br>
-          pods-service-route: This will export NAMESPACE_COUNT env variable; set to ~30 * num_workers. The number of namespaces created by Kube-burner.<br>
-          max-services: This will export SERVICE_COUNT env variable; set to 200 * num_workers, work up to 250 * num_workers. Creates n-replicas of an application deployment (hello-openshift) and a service in a single namespace.<br>
-          node-density: This will export PODS_PER_NODE env variable; set to 200, work up to 250. Creates as many "sleep" pods as configured in this variable*NODE_COUNT - existing number of pods on node - 1.<br>
-          node-density-heavy: This will export PODS_PER_NODE env variable; set to 200, work up to 250. Creates this number of applications proportional to the calculated number of pods / 2<br>
-          node-density-cni: This will export PODS_PER_NODE env variable; set to 200, work up to 250. Creates this number of applications proportional to the calculated number of pods / 2<br>
-          node-density-cni-networkpolicy: This will export PODS_PER_NODE env variable; set to 200, work up to 250. Creates this number of applications proportional to the calculated number of pods / 2<br>
-          networkpolicy-case1: This will export JOB_ITERATIONS env variable; set to 5 * num_workers. This variable sets the number of iterations to perform (1 namespace per iteration)<br>
-          networkpolicy-case2: This will export JOB_ITERATIONS env variable; set to 1 * num_workers. This variable sets the number of iterations to perform (1 namespace per iteration)<br>
-          networkpolicy-case3: This will export JOB_ITERATIONS env variable; set to 4 * num_workers. This variable sets the number of iterations to perform (1 namespace per iteration)<br>
-          Read <a href=https://github.com/openshift-qe/ocp-qe-perfscale-ci/tree/kube-burner/README.md>here</a> for details about each variable
+          This variable configures parameter needed for each type of workload. By default 400.<br>
+          storage-perf: This will export TOTAL_WORKLOAD env variable; Due to statefulset and deployment exercise different behavior from attach-detach controllers. For mixed-workload, 1 statefulset with 200 replicas and 200 deployments with 2 replica will be created. For statefulset, each POD(replicas) will mount one pvc and pv. For deployment, two pod of each deployment will mount a shared pvc and pv. set to 20 * num_workers, work up to 25 * num_workers. Creates as 600 "nginx" pods with 400 pvc/pv as configured in this environment variable.<br>
+          Read <a href=https://github.com/openshift-qe/ocp-qe-perfscale-ci/tree/storage-perf/README.md>here</a> for details about each variable
           '''
       )
       separator(
@@ -130,7 +117,7 @@ pipeline {
       booleanParam(
           name: 'CHURN',
           defaultValue: true,
-          description: '''Run churn at end of original iterations. <a href=https://github.com/cloud-bulldozer/e2e-benchmarking/tree/master/workloads/kube-burner#churn>Churning</a> allows you to scale down and then up a percentage of JOB_ITERATIONS after the objects have been created <br>
+          description: '''Run churn at end of original iterations. <a href=https://github.com/cloud-bulldozer/e2e-benchmarking/tree/master/workloads/storage-perf#churn>Churning</a> allows you to scale down and then up a percentage of JOB_ITERATIONS after the objects have been created <br>
           Use the following variables in ENV_VARS to set specifics of churn: <br>
           CHURN_DURATION=60m  <br>
           CHURN_PERCENT=20 <br>
@@ -196,7 +183,7 @@ pipeline {
       )
       string(
           name: 'E2E_BENCHMARKING_REPO',
-          defaultValue: 'https://github.com/cloud-bulldozer/e2e-benchmarking',
+          defaultValue: 'https://github.com/liqcui/e2e-benchmarking',
           description: 'You can change this to point to your fork if needed.'
       )
       string(
@@ -222,7 +209,7 @@ pipeline {
             }
       }
     }
-    stage('Run Kube-Burner Test'){    
+    stage('Run Storage-Perf Test'){    
         agent {
           kubernetes {
             cloud 'PSI OCP-C1 agents'
@@ -293,42 +280,25 @@ pipeline {
                         mkdir -p ~/.kube
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         ls -ls ~/.kube/
-                        cd workloads/kube-burner
+                        cd workloads/storage-perf
                         python3.9 --version
                         python3.9 -m pip install virtualenv
                         python3.9 -m virtualenv venv3
                         source venv3/bin/activate
                         python --version
                         pip install pytimeparse futures
-                        if [[ $WORKLOAD == *"cluster-density"* ]] || [[ $WORKLOAD == *"networkpolicy-case"* ]]; then
-                            export JOB_ITERATIONS=$VARIABLE
-                        elif [[ $WORKLOAD == "pod-density" ]]; then
-                            export PODS=$VARIABLE
-                        elif [[ $WORKLOAD == "max-namespaces" ]] || [[ $WORKLOAD == "pods-service-route" ]]; then
-                            export NAMESPACE_COUNT=$VARIABLE
-                        elif [[ $WORKLOAD == "max-services" ]]; then
-                            export SERVICE_COUNT=$VARIABLE
-                        elif [[ $WORKLOAD == *"node-density"* ]] || [[ $WORKLOAD == "pod-density-heavy" ]]; then
-                            export PODS_PER_NODE=$VARIABLE
-                        fi
-
-                        if [[ $WORKLOAD == "max-services" ]] || [[ $WORKLOAD == "max-namespaces" ]] || [[ $WORKLOAD == "cluster-density" ]] || [[ $WORKLOAD == "concurrent-builds" ]]; then 
-                            export COMPARISON_CONFIG=$(echo ${COMPARISON_CONFIG/nodeWorkers/nodeAggWorkers})
-                            ## kubelet and crio metrics aren't in aggregated metrics files
-                            export COMPARISON_CONFIG=$(echo ${COMPARISON_CONFIG/kubelet.json/})
-                            export COMPARISON_CONFIG=$(echo ${COMPARISON_CONFIG/crio.json/})
-                            export COMPARISON_CONFIG=$(echo ${COMPARISON_CONFIG/containerMetrics.json/})
-                            
-                        fi
+                        export WORKLOAD_TYPE=${WORKLOAD}
+                        export TOTAL_WORKLOAD=${VARIABLE}
+                        export WORKLOAD_CHECKING_TIMEOUT=${WORKLOAD_CHECKING_TIMEOUT}
 
                         set -o pipefail
                         pwd
                         echo "workspace $WORKSPACE"
-                        ./run.sh |& tee "kube-burner.out"
+                        ./run-scaleup-workload.sh |& tee "storage-perf.out"
                     ''')
-                    output = sh(returnStdout: true, script: 'cat workloads/kube-burner/kube-burner.out')
+                    output = sh(returnStdout: true, script: 'cat workloads/storage-perf/storage-perf.out')
                     archiveArtifacts(
-                        artifacts: 'workloads/kube-burner/kube-burner.out',
+                        artifacts: 'workloads/storage-perf/storage-perf.out',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
@@ -353,7 +323,7 @@ pipeline {
                     parameters: [
                         string(name: 'BUILD_NUMBER', value: BUILD_NUMBER),text(name: "ENV_VARS", value: ENV_VARS),
                         string(name: "CERBERUS_ITERATIONS", value: "1"), string(name: "CERBERUS_WATCH_NAMESPACES", value: "[^.*\$]"),
-                        string(name: 'CERBERUS_IGNORE_PODS', value: "[^installer*, ^kube-burner*, ^redhat-operators*, ^certified-operators*]"),
+                        string(name: 'CERBERUS_IGNORE_PODS', value: "[^installer*, ^storage-perf*, ^redhat-operators*, ^certified-operators*]"),
                         string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL),booleanParam(name: "INSPECT_COMPONENTS", value: true),
                         string(name: "WORKLOAD", value: WORKLOAD),booleanParam(name: "MUST_GATHER", value: MUST_GATHER)
                     ],
