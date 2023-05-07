@@ -294,7 +294,7 @@ pipeline {
                         set -o pipefail
                         pwd
                         echo "workspace $WORKSPACE"
-                        ./run-scaleup-workload.sh |& tee "storage-csi-perf.out"
+                        ./run.sh |& tee "storage-csi-perf.out"
                     ''')
                     output = sh(returnStdout: true, script: 'cat workloads/storage-csi-perf/storage-csi-perf.out')
                     archiveArtifacts(
