@@ -282,6 +282,7 @@ pipeline {
                             oc projects
                             ls -ls ~/.kube/
                             env
+                            pip list
                             cd workloads/router-perf-v2
                             ./ingress-performance.sh |& tee "ingress_router.out"
                             '''
