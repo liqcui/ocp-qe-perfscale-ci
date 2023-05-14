@@ -282,11 +282,11 @@ pipeline {
                         ls -ls ~/.kube/
                         cd workloads/storage-csi-perf
                         python3.9 --version
-                        python3.9 -m pip install virtualenv
+                        python3.9 -m pip install virtualenv 
                         python3.9 -m virtualenv venv3
                         source venv3/bin/activate
                         python --version
-                        pip install pytimeparse futures
+                        pip3 install pytimeparse futures elasticsearch numpy
                         export WORKLOAD=${WORKLOAD}
                         export TOTAL_WORKLOAD=${VARIABLE}
                         export WORKLOAD_CHECKING_TIMEOUT=${WORKLOAD_CHECKING_TIMEOUT}
