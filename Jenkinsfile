@@ -287,7 +287,7 @@ pipeline {
                         source venv3/bin/activate
                         python --version
                         pip install pytimeparse futures
-                        export WORKLOAD_TYPE=${WORKLOAD}
+                        export WORKLOAD=${WORKLOAD}
                         export TOTAL_WORKLOAD=${VARIABLE}
                         export WORKLOAD_CHECKING_TIMEOUT=${WORKLOAD_CHECKING_TIMEOUT}
 
