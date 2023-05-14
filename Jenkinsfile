@@ -286,7 +286,7 @@ pipeline {
                         python3.9 -m virtualenv venv3
                         source venv3/bin/activate
                         python --version
-                        pip3 install pytimeparse futures elasticsearch numpy
+                        pip install pytimeparse futures elasticsearch numpy
                         export WORKLOAD=${WORKLOAD}
                         export TOTAL_WORKLOAD=${VARIABLE}
                         export WORKLOAD_CHECKING_TIMEOUT=${WORKLOAD_CHECKING_TIMEOUT}
