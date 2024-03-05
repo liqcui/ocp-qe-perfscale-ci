@@ -1,0 +1,9 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: netobserv-main-testing
+  namespace: openshift-marketplace
+spec:
+  displayName: NetObservMainTesting
+  image: ${UPSTREAM_IMAGE}
+  sourceType: grpc

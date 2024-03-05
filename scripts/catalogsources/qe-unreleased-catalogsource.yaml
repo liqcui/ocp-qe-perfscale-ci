@@ -1,0 +1,9 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: qe-unreleased-testing
+  namespace: openshift-marketplace
+spec:
+  displayName: NetObservUnreleasedTesting
+  image: ${DOWNSTREAM_IMAGE}
+  sourceType: grpc

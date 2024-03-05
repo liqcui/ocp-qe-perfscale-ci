@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: xk6-kafka
+  name: xk6-kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xk6-kafka
+  template:
+    metadata:
+      labels:
+        app: xk6-kafka
+    spec:
+      containers:
+      - image: mostafamoradian/xk6-kafka:latest 
+        name: xk6-kafka
+        imagePullPolicy: Always
+            #command: [ "k6", "run", "--vus","50","--duration","3600","scripts/test_json.js"] 
+        command: ["k6","run","-u","5","-d","60s","/scripts/test_json.js"]
+        env: 
+          - name: KAFKA_SERVICE
+            value: kafka-services
+          - name: VIRTUAL_USERS
+            value: "50"
+        volumeMounts:
+          - mountPath: /scripts/
+            name: xk6-kafka-scripts
+            #subPath: status.html
+      volumes:
+        - name: xk6-kafka-scripts
+          configMap: 
+            name: xk6-kafka-scripts

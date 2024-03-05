@@ -163,6 +163,58 @@ pipeline {
           Checking this parameter box is valid only when SCALE_UP is greater than 0.
           '''
       )
+      booleanParam(
+            name: 'INSTALL_DITTYBOPPER',
+            defaultValue: false,
+            description: 'Value to install dittybopper dashboards to cluster'
+        )
+      string(
+            name: 'DITTYBOPPER_REPO',
+            defaultValue: 'https://github.com/cloud-bulldozer/performance-dashboards.git',
+            description: 'You can change this to point to your fork if needed'
+        )
+      string(
+            name: 'DITTYBOPPER_REPO_BRANCH',
+            defaultValue: 'master',
+            description: 'You can change this to point to a branch on your fork if needed'
+        )
+       booleanParam(
+            name: 'ENABLE_KAFKA',
+            defaultValue: false,
+            description: 'Check this box to setup Kafka for NetObserv or to update Kafka configs even if it is already installed'
+        )
+       booleanParam(
+            name: 'ENABLE_FLOWCOLLECTOR_KAFKA',
+            defaultValue: false,
+            description: 'Check this box to config flowcontroller to kafak development mode'
+        )
+       choice(
+            name: 'TOPIC_PARTITIONS',
+            choices: [6, 10, 24, 48],
+            description: '''
+                Number of Kafka Topic Partitions. Below are recommended values for partitions:<br/>
+                6 - default for non-perf testing environments<br/>
+                10 - Perf testing with worker nodes <= 20<br/>
+                24 - Perf testing with worker nodes <= 50<br/>
+                48 - Perf testing with worker nodes <= 100<br/>
+            '''
+        )
+        string(
+            name: 'FLP_KAFKA_REPLICAS',
+            defaultValue: '3',
+            description: '''
+                Replicas should be at least half the number of Kafka TOPIC_PARTITIONS and should not exceed number of TOPIC_PARTITIONS or number of nodes:<br/>
+                3 - default for non-perf testing environments<br/>
+            '''
+        )
+        string(
+            name: 'BROKER_REPLICAS',
+            defaultValue: '3',
+            description: '''
+                Replicas of kafka broker:<br/>
+                3 - default for non-perf testing environments<br/>
+            '''
+        )
       string(
           name: 'SCALE_UP',
           defaultValue: '0',
@@ -204,6 +256,35 @@ pipeline {
             }
       }
     }
+    stage('Install Dittybopper') {
+            when {
+                expression { params.INSTALL_DITTYBOPPER == true }
+            }
+            steps {
+                // checkout performance dashboards repo
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: params.DITTYBOPPER_REPO_BRANCH ]],
+                    userRemoteConfigs: [[url: params.DITTYBOPPER_REPO ]],
+                    extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'performance-dashboards']]
+                ])
+                script {
+                    DITTYBOPPER_PARAMS = "-i $WORKSPACE/ocp-qe-perfscale-ci/scripts/queries/netobserv_dittybopper.json"
+                    // attempt installation of dittybopper
+                    dittybopperReturnCode = sh(returnStatus: true, script: """
+                        source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                        . $WORKSPACE/performance-dashboards/dittybopper/deploy.sh $DITTYBOPPER_PARAMS
+                    """)
+                    // fail pipeline if installation failed, continue otherwise
+                    if (dittybopperReturnCode.toInteger() != 0) {
+                        error('Installation of Dittybopper failed :(')
+                    }
+                    else {
+                        println('Successfully installed Dittybopper :)')
+                    }
+                }
+            }
+        }
     stage('Run Kube-Burner Test'){    
         agent {
           kubernetes {
@@ -302,7 +383,43 @@ pipeline {
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
                         file_loc=$folder_name"*"
                         cp $file_loc .
-
+                                         
+                        // attempt to enable or update Kafka if applicable
+                        println('Checking if Kafka needs to be enabled or updated...')
+                        if (params.ENABLE_KAFKA == true) {
+                            println("Deploy Kafka in Openshift...")
+                            kafkaReturnCode = sh(returnStatus: true, script: """
+                                source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                                deploy_kafka
+                            """)
+    
+                            if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
+                            println("Configuring Kafka in flowcollector...")
+                            kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
+                                source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                                update_flowcollector_use_kafka_deploymentModel
+                            """)
+                            if (kafkaFlowControlReturnCode.toInteger() != 0){
+                                   error('Failed to update flowcollector use kafka deploymentModel :(')
+                            }
+    
+                            }
+                            // fail pipeline if installation and/or configuration failed
+                            if (kafkaReturnCode.toInteger() != 0 ) {
+                                error('Failed to enable Kafka in flowcollector :(')
+                            }
+                            // otherwise continue and display controller and updated FLP pods running in cluster
+                            else {
+                                println('Successfully enabled Kafka with flowcollector :)')
+                                sh(returnStatus: true, script: '''
+                                    oc get pods -n openshift-operators
+                                    oc get pods -n netobserv
+                                ''')
+                            }
+                        }
+                        else {
+                            println('Skipping Kafka configuration...')
+                        }
 
                     ''')
                     archiveArtifacts(
@@ -497,6 +614,7 @@ pipeline {
                   parameters: [
                       string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), string(name: 'WORKER_COUNT', value: SCALE_DOWN),
                       text(name: "ENV_VARS", value: ENV_VARS), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL)
+                      booleanParam(name: 'INSTALL_DITTYBOPPER', value: false),
                   ]
           }
       }

@@ -1,0 +1,136 @@
+apiVersion: flows.netobserv.io/v1beta2
+kind: FlowCollector
+metadata:
+  name: cluster
+spec:
+  agent:
+    type: eBPF
+    ebpf:
+      cacheActiveTimeout: 5s
+      cacheMaxFlows: 100000
+      excludeInterfaces:
+      - lo
+      imagePullPolicy: IfNotPresent
+      logLevel: info
+      resources:
+        limits:
+          memory: 800Mi
+        requests:
+          cpu: 100m
+          memory: 50Mi
+      sampling: 1
+    ipfix:
+      cacheActiveTimeout: 20s
+      cacheMaxFlows: 400
+      clusterNetworkOperator:
+        namespace: openshift-network-operator
+      forceSampleAll: false
+      ovnKubernetes:
+        containerName: ovnkube-node
+        daemonSetName: ovnkube-node
+        namespace: ovn-kubernetes
+      sampling: 400
+  consolePlugin:
+    autoscaler:
+      maxReplicas: 3
+      metrics:
+      - resource:
+          name: cpu
+          target:
+            averageUtilization: 50
+            type: Utilization
+        type: Resource
+      minReplicas: 1
+      status: Disabled
+    imagePullPolicy: IfNotPresent
+    logLevel: info
+    portNaming:
+      enable: true
+      portNames:
+        "3100": loki
+    quickFilters:
+    - default: true
+      filter:
+        dst_namespace!: openshift-,netobserv
+        src_namespace!: openshift-,netobserv
+      name: Applications
+    - filter:
+        dst_namespace: openshift-,netobserv
+        src_namespace: openshift-,netobserv
+      name: Infrastructure
+    - default: true
+      filter:
+        dst_kind: Pod
+        src_kind: Pod
+      name: Pods network
+    - filter:
+        dst_kind: Service
+      name: Services network
+    replicas: 1
+    resources:
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 100m
+        memory: 50Mi
+    advanced:
+      port: 9001
+      register: true
+  deploymentModel: Direct
+  exporters: []
+  kafka:
+    address: kafka-cluster-kafka-bootstrap.netobserv
+    tls:
+      caCert:
+        certFile: ca.crt
+        name: kafka-cluster-cluster-ca-cert
+        type: secret
+      enable: false
+      insecureSkipVerify: false
+      userCert:
+        certFile: user.crt
+        certKey: user.key
+        name: flp-kafka
+        type: secret
+    topic: network-flows
+  loki:
+    enable: true
+    mode: LokiStack
+    lokiStack:
+      name: lokistack
+    maxRetries: 2
+    writeBatchWait: 1s
+    writeBatchSize: 10485760
+    advanced:
+      writeMinBackoff: 1s
+      writeMaxBackoff: 5s
+  namespace: netobserv
+  processor:
+    imagePullPolicy: IfNotPresent
+    kafkaConsumerAutoscaler:
+      maxReplicas: 0
+      status: Disabled
+    kafkaConsumerBatchSize: 10485760
+    kafkaConsumerQueueCapacity: 1000
+    kafkaConsumerReplicas: 3
+    logLevel: info
+    metrics:
+      includeList:
+        - node_ingress_bytes_total
+        - workload_ingress_bytes_total
+        - namespace_flows_total
+      server:
+        port: 9102
+        tls:
+          type: Disabled
+    resources:
+      limits:
+        memory: 800Mi
+      requests:
+        cpu: 100m
+        memory: 100Mi
+    advanced:
+      port: 2055
+      healthPort: 8080
+      dropUnusedFields: true
+      enableKubeProbes: true
