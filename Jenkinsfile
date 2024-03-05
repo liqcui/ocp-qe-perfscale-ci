@@ -277,7 +277,7 @@ pipeline {
                 target: 'flexy-artifacts'
                 )
                 script {
-                    DITTYBOPPER_PARAMS = "-i ./scripts/queries/netobserv_dittybopper.json"
+                    DITTYBOPPER_PARAMS = "-i $WORKSPACE/scripts/queries/netobserv_dittybopper.json"
                     // attempt installation of dittybopper
                     dittybopperReturnCode = sh(returnStatus: true, script: """
                         if [ ! -d ~/.kube ];then
@@ -287,7 +287,7 @@ pipeline {
                         pwd 
                         ls -l
                         find ./ -name netobserv.sh
-                        source ./scripts/netobserv.sh
+                        source $WORKSPACE/scripts/netobserv.sh
                         . $WORKSPACE/performance-dashboards/dittybopper/deploy.sh $DITTYBOPPER_PARAMS
                     """)
                     // fail pipeline if installation failed, continue otherwise
@@ -393,6 +393,8 @@ pipeline {
                             export EXTRA_FLAGS="$EXTRA_FLAGS --pods-per-node=$VARIABLE"
                         fi
                         export GC=${CLEANUP}
+                        pwd
+                        ls -l
                         ./run.sh |& tee "kube-burner-ocp.out"
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
