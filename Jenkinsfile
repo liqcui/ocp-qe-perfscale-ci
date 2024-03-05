@@ -273,6 +273,10 @@ pipeline {
                     DITTYBOPPER_PARAMS = "-i $WORKSPACE/ocp-qe-perfscale-ci/scripts/queries/netobserv_dittybopper.json"
                     // attempt installation of dittybopper
                     dittybopperReturnCode = sh(returnStatus: true, script: """
+                        if [ ! -d ~/.kube ];then
+                           mkdir -p ~/.kube
+                        fi
+                        cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         pwd 
                         ls -l
                         find ./ -name netobserv.sh
@@ -411,7 +415,7 @@ pipeline {
                     else { 
                         currentBuild.result = "FAILURE"
                     }
-                                            // attempt to enable or update Kafka if applicable
+                    // attempt to enable or update Kafka if applicable
                     println('Checking if Kafka needs to be enabled or updated...')
                     if (params.ENABLE_KAFKA == true) {
                         println("Deploy Kafka in Openshift...")

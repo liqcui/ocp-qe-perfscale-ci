@@ -2,7 +2,7 @@
 
 SCRIPTS_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 export DEFAULT_SC=$(oc get storageclass -o=jsonpath='{.items[?(@.metadata.annotations.storageclass\.kubernetes\.io/is-default-class=="true")].metadata.name}')
-export KUBECONFIG=~/.kube/config
+#export KUBECONFIG=~/.kube/config
 deploy_netobserv() {
   echo "====> Deploying NetObserv"
   if [[ -z $INSTALLATION_SOURCE ]]; then
