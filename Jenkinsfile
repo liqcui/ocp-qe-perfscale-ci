@@ -277,7 +277,7 @@ pipeline {
                 target: 'flexy-artifacts'
                 )
                 script {
-                    DITTYBOPPER_PARAMS = "-i $WORKSPACE/ocp-qe-perfscale-ci/scripts/queries/netobserv_dittybopper.json"
+                    DITTYBOPPER_PARAMS = "-i ./scripts/queries/netobserv_dittybopper.json"
                     // attempt installation of dittybopper
                     dittybopperReturnCode = sh(returnStatus: true, script: """
                         if [ ! -d ~/.kube ];then
