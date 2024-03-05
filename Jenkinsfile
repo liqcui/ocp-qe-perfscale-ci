@@ -276,7 +276,7 @@ pipeline {
                         pwd 
                         ls -l
                         find ./ -name netobserv.sh
-                        source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                        source ./scripts/netobserv.sh
                         . $WORKSPACE/performance-dashboards/dittybopper/deploy.sh $DITTYBOPPER_PARAMS
                     """)
                     // fail pipeline if installation failed, continue otherwise
