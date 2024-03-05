@@ -263,7 +263,6 @@ pipeline {
             }
             steps {
                 // checkout performance dashboards repo
-                deleteDir()
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: params.DITTYBOPPER_REPO_BRANCH ]],
