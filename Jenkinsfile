@@ -257,6 +257,7 @@ pipeline {
       }
     }
     stage('Install Dittybopper') {
+      agent { label params['JENKINS_AGENT_LABEL'] }
             when {
                 expression { params.INSTALL_DITTYBOPPER == true }
             }
