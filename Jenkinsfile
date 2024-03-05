@@ -273,6 +273,9 @@ pipeline {
                     DITTYBOPPER_PARAMS = "-i $WORKSPACE/ocp-qe-perfscale-ci/scripts/queries/netobserv_dittybopper.json"
                     // attempt installation of dittybopper
                     dittybopperReturnCode = sh(returnStatus: true, script: """
+                        pwd 
+                        ls -l
+                        find ./ -name netobserv.sh
                         source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
                         . $WORKSPACE/performance-dashboards/dittybopper/deploy.sh $DITTYBOPPER_PARAMS
                     """)
