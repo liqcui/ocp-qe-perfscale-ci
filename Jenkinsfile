@@ -244,7 +244,7 @@ pipeline {
       agent { label params['JENKINS_AGENT_LABEL'] }
       when {
             expression { params.SCALE_UP.toInteger() > 0 || params.INFRA_WORKLOAD_INSTALL == true}
-        }
+      }
       steps {
             script {
                 build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling/',
