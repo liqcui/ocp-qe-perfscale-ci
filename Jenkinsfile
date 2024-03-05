@@ -366,7 +366,7 @@ pipeline {
       }
     }
     stage('Run Kube-Burner Test') {
-      agent {
+        agent {
           kubernetes {
             cloud 'PSI OCP-C1 agents'
             yaml """\
@@ -378,7 +378,7 @@ pipeline {
               spec:
                 containers:
                 - name: "jnlp"
-                  image: "image-registry.openshift-image-registry.svc:5000/aos-qe-ci/cucushift:${JENKINS_AGENT_LABEL}-rhel8"
+                  image: "image-registry.openshift-image-registry.svc:5000/aosqe/cucushift:${JENKINS_AGENT_LABEL}-rhel8"
                   resources:
                     requests:
                       memory: "8Gi"
@@ -390,37 +390,37 @@ pipeline {
                   workingDir: "/home/jenkins/ws"
                   tty: true
               """.stripIndent()
+          }
         }
-      }
-      steps {
-          deleteDir()
-          checkout([
+        steps {
+            deleteDir()
+            checkout([
                 $class: 'GitSCM',
                 branches: [[name: params.E2E_BENCHMARKING_REPO_BRANCH ]],
                 doGenerateSubmoduleConfigurations: false,
                 userRemoteConfigs: [[url: params.E2E_BENCHMARKING_REPO ]]
-          ])
-          copyArtifacts(
+            ])
+            copyArtifacts(
                 filter: '',
                 fingerprintArtifacts: true,
                 projectName: 'ocp-common/Flexy-install',
                 selector: specific(params.BUILD_NUMBER),
                 target: 'flexy-artifacts'
-          )
-          script {
+            )
+            script {
                 buildinfo = readYaml file: "flexy-artifacts/BUILDINFO.yml"
                 currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}-${params.WORKLOAD}"
                 currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
                 buildinfo.params.each { env.setProperty(it.key, it.value) }
-          }
-          script {
-               if (params.EMAIL_ID_OVERRIDE != '') {
+            }
+            script {
+                if (params.EMAIL_ID_OVERRIDE != '') {
                     env.EMAIL_ID_FOR_RESULTS_SHEET = params.EMAIL_ID_OVERRIDE
-               }
-               else {
+                }
+                else {
                     env.EMAIL_ID_FOR_RESULTS_SHEET = "${userId}@redhat.com"
-               }
-               withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
+                }
+                withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
                     file(credentialsId: 'sa-google-sheet', variable: 'GSHEET_KEY_LOCATION')]) {
                     RETURNSTATUS = sh(returnStatus: true, script: '''
                         # Get ENV VARS Supplied by the user to this job and store in .env_override
@@ -431,11 +431,8 @@ pipeline {
                         export GSHEET_KEY_LOCATION=$WORKSPACE/.gsheet.json
                         export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
-                        if [ ! -d ~/.kube ];then
-                           mkdir -p ~/.kube
-                        fi
-                        pwd
-                        ls -l
+                        mkdir -p ~/.kube
+
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         
                         export CHURN_DURATION=${CHURN_DURATION:-10m}
@@ -461,52 +458,53 @@ pipeline {
                             export EXTRA_FLAGS="$EXTRA_FLAGS --pods-per-node=$VARIABLE"
                         fi
                         export GC=${CLEANUP}
-                        pwd
-                        ls -l
                         ./run.sh |& tee "kube-burner-ocp.out"
+                        ''')
+                        sh(returnStatus: true, script: '''
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
                         file_loc=$folder_name"*"
+                        cd workloads/kube-burner-ocp-wrapper
                         cp $file_loc .
-                    ''')
-                }
-               archiveArtifacts(
+                        ''')
+                    archiveArtifacts(
                         artifacts: 'workloads/kube-burner-ocp-wrapper/kube-burner-ocp.out',
                         allowEmptyArchive: true,
                         fingerprint: true
-                )
+                    )
 
-               archiveArtifacts(
+                    archiveArtifacts(
                         artifacts: 'workloads/kube-burner-ocp-wrapper/index_data.json',
                         allowEmptyArchive: true,
                         fingerprint: true
-                )
+                    )
 
-               workloadInfo = readJSON file: "workloads/kube-burner-ocp-wrapper/index_data.json"
-               workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
-               // update build description fields
-               // UUID
-               currentBuild.description += "\n<b>UUID:</b> ${env.UUID}<br/>"
-               if (RETURNSTATUS.toInteger() == 0) {
+                    workloadInfo = readJSON file: "workloads/kube-burner-ocp-wrapper/index_data.json"
+                    workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
+                    // update build description fields
+                    // UUID
+                    currentBuild.description += "\n<b>UUID:</b> ${env.UUID}<br/>"
+                    if (RETURNSTATUS.toInteger() == 0) {
                         status = "PASS"
-                }
-               else { 
+                    }
+                    else { 
                         currentBuild.result = "FAILURE"
+                    }
                 }
-          }
-          checkout([
+            }
+            checkout([
                 $class: 'GitSCM',
                 branches: [[name: 'main' ]],
                 userRemoteConfigs: [[url: "https://github.com/openshift-qe/ocp-qe-perfscale-ci" ]],
                 extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'helpful_scripts']]
-          ])
-          copyArtifacts(
+            ])
+            copyArtifacts(
                 fingerprintArtifacts: true, 
                 projectName: JOB_NAME,
                 selector: specific(JENKINS_JOB_NUMBER),
                 target: 'workload-artifacts'
-          )
-      }
+            )
+        }
     }
     stage("Create google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
