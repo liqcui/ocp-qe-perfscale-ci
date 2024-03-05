@@ -242,10 +242,10 @@ pipeline {
   stages {  
     stage('Scale up cluster') {
       agent { label params['JENKINS_AGENT_LABEL'] }
-        when {
+      when {
             expression { params.SCALE_UP.toInteger() > 0 || params.INFRA_WORKLOAD_INSTALL == true}
         }
-        steps {
+      steps {
             script {
                 build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling/',
                     parameters: [
@@ -258,10 +258,10 @@ pipeline {
     }
     stage('Install Dittybopper') {
       agent { label params['JENKINS_AGENT_LABEL'] }
-            when {
+      when {
                 expression { params.INSTALL_DITTYBOPPER == true }
-            }
-            steps {
+      }
+      steps {
                 // checkout performance dashboards repo
                 checkout([
                     $class: 'GitSCM',
@@ -298,15 +298,14 @@ pipeline {
                         println('Successfully installed Dittybopper :)')
                     }
                 }
-            }
-        }
+      }
     }
     stage('Deploy Kafka') {
       agent { label params['JENKINS_AGENT_LABEL'] }
-            when {
+      when {
                 expression { params.INSTALL_DITTYBOPPER == true }
-            }
-            steps {
+      }
+      steps {
                 // checkout performance dashboards repo
                 checkout([
                     $class: 'GitSCM',
@@ -365,11 +364,10 @@ pipeline {
                         println('Skipping Kafka configuration...')
                     }
                 }
-            }
-        }
+      }
     }
-    stage('Run Kube-Burner Test') {    
-        agent {
+    stage('Run Kube-Burner Test') {
+      agent {
           kubernetes {
             cloud 'PSI OCP-C1 agents'
             yaml """\
@@ -393,37 +391,37 @@ pipeline {
                   workingDir: "/home/jenkins/ws"
                   tty: true
               """.stripIndent()
-          }
         }
-        steps {
-            deleteDir()
-            checkout([
+      }
+      steps {
+          deleteDir()
+          checkout([
                 $class: 'GitSCM',
                 branches: [[name: params.E2E_BENCHMARKING_REPO_BRANCH ]],
                 doGenerateSubmoduleConfigurations: false,
                 userRemoteConfigs: [[url: params.E2E_BENCHMARKING_REPO ]]
-            ])
-            copyArtifacts(
+          ])
+          copyArtifacts(
                 filter: '',
                 fingerprintArtifacts: true,
                 projectName: 'ocp-common/Flexy-install',
                 selector: specific(params.BUILD_NUMBER),
                 target: 'flexy-artifacts'
-            )
-            script {
+          )
+          script {
                 buildinfo = readYaml file: "flexy-artifacts/BUILDINFO.yml"
                 currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}-${params.WORKLOAD}"
                 currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
                 buildinfo.params.each { env.setProperty(it.key, it.value) }
-            }
-            script {
-                if (params.EMAIL_ID_OVERRIDE != '') {
+          }
+          script {
+               if (params.EMAIL_ID_OVERRIDE != '') {
                     env.EMAIL_ID_FOR_RESULTS_SHEET = params.EMAIL_ID_OVERRIDE
-                }
-                else {
+               }
+               else {
                     env.EMAIL_ID_FOR_RESULTS_SHEET = "${userId}@redhat.com"
-                }
-                withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
+               }
+               withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
                     file(credentialsId: 'sa-google-sheet', variable: 'GSHEET_KEY_LOCATION')]) {
                     RETURNSTATUS = sh(returnStatus: true, script: '''
                         # Get ENV VARS Supplied by the user to this job and store in .env_override
@@ -472,72 +470,44 @@ pipeline {
                         file_loc=$folder_name"*"
                         cp $file_loc .
                     ''')
-                    archiveArtifacts(
+                }
+               archiveArtifacts(
                         artifacts: 'workloads/kube-burner-ocp-wrapper/kube-burner-ocp.out',
                         allowEmptyArchive: true,
                         fingerprint: true
-                    )
+                )
 
-                    archiveArtifacts(
+               archiveArtifacts(
                         artifacts: 'workloads/kube-burner-ocp-wrapper/index_data.json',
                         allowEmptyArchive: true,
                         fingerprint: true
-                    )
+                )
 
-                    workloadInfo = readJSON file: "workloads/kube-burner-ocp-wrapper/index_data.json"
-                    workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
-                    // update build description fields
-                    // UUID
-                    currentBuild.description += "\n<b>UUID:</b> ${env.UUID}<br/>"
-                    if (RETURNSTATUS.toInteger() == 0) {
+               workloadInfo = readJSON file: "workloads/kube-burner-ocp-wrapper/index_data.json"
+               workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
+               // update build description fields
+               // UUID
+               currentBuild.description += "\n<b>UUID:</b> ${env.UUID}<br/>"
+               if (RETURNSTATUS.toInteger() == 0) {
                         status = "PASS"
-                    }
-                    else { 
+                }
+               else { 
                         currentBuild.result = "FAILURE"
-                    }
-            }
-            checkout([
+                }
+          }
+          checkout([
                 $class: 'GitSCM',
                 branches: [[name: 'main' ]],
                 userRemoteConfigs: [[url: "https://github.com/openshift-qe/ocp-qe-perfscale-ci" ]],
                 extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'helpful_scripts']]
-            ])
-            copyArtifacts(
+          ])
+          copyArtifacts(
                 fingerprintArtifacts: true, 
                 projectName: JOB_NAME,
                 selector: specific(JENKINS_JOB_NUMBER),
                 target: 'workload-artifacts'
-            )
-            script {
-                // run Mr. Sandman
-                returnCode = sh(returnStatus: true, script: """
-                    python3.9 --version
-                    python3.9 -m pip install virtualenv
-                    python3.9 -m virtualenv venv3
-                    source venv3/bin/activate
-                    python --version
-                    python -m pip install -r $WORKSPACE/helpful_scripts/scripts/requirements.txt
-                    python $WORKSPACE/helpful_scripts/scripts/sandman.py --file $WORKSPACE/workload-artifacts/workloads/**/*.out
-                """)
-                // fail pipeline if Mr. Sandman run failed, continue otherwise
-                if (returnCode.toInteger() != 0) {
-                    error('Mr. Sandman tool failed :(')
-                }
-                else {
-                    println 'Successfully ran Mr. Sandman tool :)'
-                }
-                archiveArtifacts(
-                    artifacts: 'helpful_scripts/data/*',
-                    allowEmptyArchive: true,
-                    fingerprint: true
-                )
-                workloadInfo = readJSON file: "helpful_scripts/data/workload.json"
-                workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
-                // update build description fields
-                // UUID
-                currentBuild.description += "\n<b>UUID:</b> ${env.UUID}<br/>"
-            }
-        }
+          )
+      }
     }
     stage("Create google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
@@ -657,7 +627,7 @@ pipeline {
       when {
           expression { params.SCALE_DOWN.toInteger() > 0 }
       }
-        steps {
+      steps {
           script {
               build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling',
                   parameters: [
@@ -667,7 +637,6 @@ pipeline {
                   ]
           }
       }
-    }
     }
     post {
         always {
@@ -682,4 +651,5 @@ pipeline {
             }
         }
     }  
-
+  }
+}
