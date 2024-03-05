@@ -300,6 +300,7 @@ pipeline {
                 }
             }
         }
+    }
     stage('Deploy Kafka') {
       agent { label params['JENKINS_AGENT_LABEL'] }
             when {
@@ -338,12 +339,6 @@ pipeline {
                         if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
                             println("Configuring Kafka in flowcollector...")
                             kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
-                            if [ ! -d ~/.kube ];then
-                               mkdir -p ~/.kube
-                            fi
-                            cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
-                            pwd 
-                            ls -l
                             source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
                             source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
                             update_flowcollector_use_kafka_deploymentModel
@@ -372,7 +367,8 @@ pipeline {
                 }
             }
         }
-    stage('Run Kube-Burner Test'){    
+    }
+    stage('Run Kube-Burner Test') {    
         agent {
           kubernetes {
             cloud 'PSI OCP-C1 agents'
@@ -543,7 +539,6 @@ pipeline {
             }
         }
     }
-
     stage("Create google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when { 
@@ -564,7 +559,7 @@ pipeline {
             }
         }
     }
-     stage("Compare results with baseline uuid and print to google sheet") {
+    stage("Compare results with baseline uuid and print to google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when { 
             expression { params.GEN_CSV == true }
@@ -673,7 +668,7 @@ pipeline {
           }
       }
     }
-  }
+    }
     post {
         always {
             script {
@@ -686,6 +681,5 @@ pipeline {
                 }
             }
         }
-    }
-}
+    }  
 
