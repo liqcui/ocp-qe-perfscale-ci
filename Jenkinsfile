@@ -303,7 +303,7 @@ pipeline {
     stage('Deploy Kafka') {
       agent { label params['JENKINS_AGENT_LABEL'] }
       when {
-                expression { params.INSTALL_DITTYBOPPER == true }
+                expression { params.ENABLE_KAFKA == true }
       }
       steps {
           // checkout performance dashboards repo
