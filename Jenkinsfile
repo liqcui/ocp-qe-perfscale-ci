@@ -263,12 +263,20 @@ pipeline {
             }
             steps {
                 // checkout performance dashboards repo
+                deleteDir()
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: params.DITTYBOPPER_REPO_BRANCH ]],
                     userRemoteConfigs: [[url: params.DITTYBOPPER_REPO ]],
                     extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'performance-dashboards']]
                 ])
+                copyArtifacts(
+                filter: '',
+                fingerprintArtifacts: true,
+                projectName: 'ocp-common/Flexy-install',
+                selector: specific(params.BUILD_NUMBER),
+                target: 'flexy-artifacts'
+                )
                 script {
                     DITTYBOPPER_PARAMS = "-i $WORKSPACE/ocp-qe-perfscale-ci/scripts/queries/netobserv_dittybopper.json"
                     // attempt installation of dittybopper
