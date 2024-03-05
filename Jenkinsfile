@@ -366,8 +366,11 @@ pipeline {
                         export GSHEET_KEY_LOCATION=$WORKSPACE/.gsheet.json
                         export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
-                        mkdir -p ~/.kube
-
+                        if [ ! -d ~/.kube ];then
+                           mkdir -p ~/.kube
+                        fi
+                        pwd
+                        ls -l
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         
                         export CHURN_DURATION=${CHURN_DURATION:-10m}
@@ -431,6 +434,7 @@ pipeline {
                         kafkaReturnCode = sh(returnStatus: true, script: """
                             source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
                             deploy_kafka
+
                         """)
 
                         if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
