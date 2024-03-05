@@ -611,8 +611,8 @@ pipeline {
               build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling',
                   parameters: [
                       string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), string(name: 'WORKER_COUNT', value: SCALE_DOWN),
-                      text(name: "ENV_VARS", value: ENV_VARS), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL)
-                      booleanParam(name: 'INSTALL_DITTYBOPPER', value: false),
+                      text(name: "ENV_VARS", value: ENV_VARS), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL),
+                      booleanParam(name: 'INSTALL_DITTYBOPPER', value: false)
                   ]
           }
       }
