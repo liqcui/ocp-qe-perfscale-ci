@@ -383,44 +383,6 @@ pipeline {
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
                         file_loc=$folder_name"*"
                         cp $file_loc .
-                                         
-                        // attempt to enable or update Kafka if applicable
-                        println('Checking if Kafka needs to be enabled or updated...')
-                        if (params.ENABLE_KAFKA == true) {
-                            println("Deploy Kafka in Openshift...")
-                            kafkaReturnCode = sh(returnStatus: true, script: """
-                                source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
-                                deploy_kafka
-                            """)
-    
-                            if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
-                            println("Configuring Kafka in flowcollector...")
-                            kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
-                                source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
-                                update_flowcollector_use_kafka_deploymentModel
-                            """)
-                            if (kafkaFlowControlReturnCode.toInteger() != 0){
-                                   error('Failed to update flowcollector use kafka deploymentModel :(')
-                            }
-    
-                            }
-                            // fail pipeline if installation and/or configuration failed
-                            if (kafkaReturnCode.toInteger() != 0 ) {
-                                error('Failed to enable Kafka in flowcollector :(')
-                            }
-                            // otherwise continue and display controller and updated FLP pods running in cluster
-                            else {
-                                println('Successfully enabled Kafka with flowcollector :)')
-                                sh(returnStatus: true, script: '''
-                                    oc get pods -n openshift-operators
-                                    oc get pods -n netobserv
-                                ''')
-                            }
-                        }
-                        else {
-                            println('Skipping Kafka configuration...')
-                        }
-
                     ''')
                     archiveArtifacts(
                         artifacts: 'workloads/kube-burner-ocp-wrapper/kube-burner-ocp.out',
@@ -444,6 +406,42 @@ pipeline {
                     }
                     else { 
                         currentBuild.result = "FAILURE"
+                    }
+                                            // attempt to enable or update Kafka if applicable
+                    println('Checking if Kafka needs to be enabled or updated...')
+                    if (params.ENABLE_KAFKA == true) {
+                        println("Deploy Kafka in Openshift...")
+                        kafkaReturnCode = sh(returnStatus: true, script: """
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            deploy_kafka
+                        """)
+
+                        if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
+                            println("Configuring Kafka in flowcollector...")
+                            kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            update_flowcollector_use_kafka_deploymentModel
+                        """)
+                            if (kafkaFlowControlReturnCode.toInteger() != 0){
+                               error('Failed to update flowcollector use kafka deploymentModel :(')
+                            }
+                        }
+                        
+                        // fail pipeline if installation and/or configuration failed
+                        if (kafkaReturnCode.toInteger() != 0 ) {
+                            error('Failed to enable Kafka in flowcollector :(')
+                        }
+                        // otherwise continue and display controller and updated FLP pods running in cluster
+                        else {
+                            println('Successfully enabled Kafka with flowcollector :)')
+                            sh(returnStatus: true, script: '''
+                                oc get pods -n openshift-operators
+                                oc get pods -n netobserv
+                            ''')
+                        }
+                    }
+                    else {
+                        println('Skipping Kafka configuration...')
                     }
                 }
             }
