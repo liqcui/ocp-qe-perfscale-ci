@@ -332,13 +332,14 @@ pipeline {
                       cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                       pwd 
                       ls -l
-                      source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                      source $WORKSPACE/scripts/netobserv.sh
                       deploy_kafka
+                      deploy-xk6-kafka
                   """)
                   if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
                       println("Configuring Kafka in flowcollector...")
                       kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
-                          source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                          source $WORKSPACE/scripts/netobserv.sh
                           update_flowcollector_use_kafka_deploymentModel
                   """)
                       if (kafkaFlowControlReturnCode.toInteger() != 0){
