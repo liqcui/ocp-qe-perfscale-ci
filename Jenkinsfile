@@ -128,7 +128,7 @@ pipeline {
       )
       string(
           name: 'JENKINS_AGENT_LABEL',
-          defaultValue: 'oc413',
+          defaultValue: 'oc415',
           description: '''
             scale-ci-static: for static agent that is specific to scale-ci, useful when the jenkins dynamic agent isn't stable<br>
             4.y: oc4y || mac-installer || rhel8-installer-4y <br/>
@@ -300,6 +300,78 @@ pipeline {
                 }
             }
         }
+    stage('Deploy Kafka') {
+      agent { label params['JENKINS_AGENT_LABEL'] }
+            when {
+                expression { params.INSTALL_DITTYBOPPER == true }
+            }
+            steps {
+                // checkout performance dashboards repo
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: params.DITTYBOPPER_REPO_BRANCH ]],
+                    userRemoteConfigs: [[url: params.DITTYBOPPER_REPO ]],
+                    extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'performance-dashboards']]
+                ])
+                copyArtifacts(
+                filter: '',
+                fingerprintArtifacts: true,
+                projectName: 'ocp-common/Flexy-install',
+                selector: specific(params.BUILD_NUMBER),
+                target: 'flexy-artifacts'
+                )
+                script {
+                    // attempt to enable or update Kafka if applicable
+                    println('Checking if Kafka needs to be enabled or updated...')
+                    if (params.ENABLE_KAFKA == true) {
+                        println("Deploy Kafka in Openshift...")
+                        kafkaReturnCode = sh(returnStatus: true, script: """
+                            if [ ! -d ~/.kube ];then
+                               mkdir -p ~/.kube
+                            fi
+                            cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+                            pwd 
+                            ls -l
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            deploy_kafka
+                        """)
+                        if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
+                            println("Configuring Kafka in flowcollector...")
+                            kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
+                            if [ ! -d ~/.kube ];then
+                               mkdir -p ~/.kube
+                            fi
+                            cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+                            pwd 
+                            ls -l
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            update_flowcollector_use_kafka_deploymentModel
+                        """)
+                            if (kafkaFlowControlReturnCode.toInteger() != 0){
+                               error('Failed to update flowcollector use kafka deploymentModel :(')
+                            }
+                        }
+                        
+                        // fail pipeline if installation and/or configuration failed
+                        if (kafkaReturnCode.toInteger() != 0 ) {
+                            error('Failed to enable Kafka in flowcollector :(')
+                        }
+                        // otherwise continue and display controller and updated FLP pods running in cluster
+                        else {
+                            println('Successfully enabled Kafka with flowcollector :)')
+                            sh(returnStatus: true, script: '''
+                                oc get pods -n openshift-operators
+                                oc get pods -n netobserv
+                            ''')
+                        }
+                    }
+                    else {
+                        println('Skipping Kafka configuration...')
+                    }
+                }
+            }
+        }
     stage('Run Kube-Burner Test'){    
         agent {
           kubernetes {
@@ -427,44 +499,6 @@ pipeline {
                     else { 
                         currentBuild.result = "FAILURE"
                     }
-                    // attempt to enable or update Kafka if applicable
-                    println('Checking if Kafka needs to be enabled or updated...')
-                    if (params.ENABLE_KAFKA == true) {
-                        println("Deploy Kafka in Openshift...")
-                        kafkaReturnCode = sh(returnStatus: true, script: """
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
-                            deploy_kafka
-
-                        """)
-
-                        if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
-                            println("Configuring Kafka in flowcollector...")
-                            kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
-                            update_flowcollector_use_kafka_deploymentModel
-                        """)
-                            if (kafkaFlowControlReturnCode.toInteger() != 0){
-                               error('Failed to update flowcollector use kafka deploymentModel :(')
-                            }
-                        }
-                        
-                        // fail pipeline if installation and/or configuration failed
-                        if (kafkaReturnCode.toInteger() != 0 ) {
-                            error('Failed to enable Kafka in flowcollector :(')
-                        }
-                        // otherwise continue and display controller and updated FLP pods running in cluster
-                        else {
-                            println('Successfully enabled Kafka with flowcollector :)')
-                            sh(returnStatus: true, script: '''
-                                oc get pods -n openshift-operators
-                                oc get pods -n netobserv
-                            ''')
-                        }
-                    }
-                    else {
-                        println('Skipping Kafka configuration...')
-                    }
-                }
             }
             checkout([
                 $class: 'GitSCM',
@@ -509,6 +543,7 @@ pipeline {
             }
         }
     }
+
     stage("Create google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when { 
