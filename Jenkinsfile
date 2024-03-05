@@ -262,21 +262,21 @@ pipeline {
                 expression { params.INSTALL_DITTYBOPPER == true }
       }
       steps {
-                // checkout performance dashboards repo
-                checkout([
+          // checkout performance dashboards repo
+          checkout([
                     $class: 'GitSCM',
                     branches: [[name: params.DITTYBOPPER_REPO_BRANCH ]],
                     userRemoteConfigs: [[url: params.DITTYBOPPER_REPO ]],
                     extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'performance-dashboards']]
-                ])
-                copyArtifacts(
-                filter: '',
-                fingerprintArtifacts: true,
-                projectName: 'ocp-common/Flexy-install',
-                selector: specific(params.BUILD_NUMBER),
-                target: 'flexy-artifacts'
-                )
-                script {
+          ])
+          copyArtifacts(
+          filter: '',
+          fingerprintArtifacts: true,
+          projectName: 'ocp-common/Flexy-install',
+          selector: specific(params.BUILD_NUMBER),
+          target: 'flexy-artifacts'
+          )
+          script {
                     DITTYBOPPER_PARAMS = "-i $WORKSPACE/scripts/queries/netobserv_dittybopper.json"
                     // attempt installation of dittybopper
                     dittybopperReturnCode = sh(returnStatus: true, script: """
@@ -297,7 +297,7 @@ pipeline {
                     else {
                         println('Successfully installed Dittybopper :)')
                     }
-                }
+          }
       }
     }
     stage('Deploy Kafka') {
@@ -306,64 +306,63 @@ pipeline {
                 expression { params.INSTALL_DITTYBOPPER == true }
       }
       steps {
-                // checkout performance dashboards repo
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: params.DITTYBOPPER_REPO_BRANCH ]],
-                    userRemoteConfigs: [[url: params.DITTYBOPPER_REPO ]],
-                    extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'performance-dashboards']]
-                ])
-                copyArtifacts(
-                filter: '',
-                fingerprintArtifacts: true,
-                projectName: 'ocp-common/Flexy-install',
-                selector: specific(params.BUILD_NUMBER),
-                target: 'flexy-artifacts'
-                )
-                script {
-                    // attempt to enable or update Kafka if applicable
-                    println('Checking if Kafka needs to be enabled or updated...')
-                    if (params.ENABLE_KAFKA == true) {
-                        println("Deploy Kafka in Openshift...")
-                        kafkaReturnCode = sh(returnStatus: true, script: """
-                            if [ ! -d ~/.kube ];then
-                               mkdir -p ~/.kube
-                            fi
-                            cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
-                            pwd 
-                            ls -l
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
-                            deploy_kafka
-                        """)
-                        if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
-                            println("Configuring Kafka in flowcollector...")
-                            kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
-                            update_flowcollector_use_kafka_deploymentModel
-                        """)
-                            if (kafkaFlowControlReturnCode.toInteger() != 0){
-                               error('Failed to update flowcollector use kafka deploymentModel :(')
-                            }
-                        }
-                        
-                        // fail pipeline if installation and/or configuration failed
-                        if (kafkaReturnCode.toInteger() != 0 ) {
-                            error('Failed to enable Kafka in flowcollector :(')
-                        }
-                        // otherwise continue and display controller and updated FLP pods running in cluster
-                        else {
-                            println('Successfully enabled Kafka with flowcollector :)')
-                            sh(returnStatus: true, script: '''
-                                oc get pods -n openshift-operators
-                                oc get pods -n netobserv
-                            ''')
-                        }
-                    }
-                    else {
-                        println('Skipping Kafka configuration...')
-                    }
-                }
+          // checkout performance dashboards repo
+          checkout([
+              $class: 'GitSCM',
+              branches: [[name: params.DITTYBOPPER_REPO_BRANCH ]],
+              userRemoteConfigs: [[url: params.DITTYBOPPER_REPO ]],
+              extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'performance-dashboards']]
+          ])
+          copyArtifacts(
+          filter: '',
+          fingerprintArtifacts: true,
+          projectName: 'ocp-common/Flexy-install',
+          selector: specific(params.BUILD_NUMBER),
+          target: 'flexy-artifacts'
+          )
+          script {
+              // attempt to enable or update Kafka if applicable
+              println('Checking if Kafka needs to be enabled or updated...')
+              if (params.ENABLE_KAFKA == true) {
+                  println("Deploy Kafka in Openshift...")
+                  kafkaReturnCode = sh(returnStatus: true, script: """
+                      if [ ! -d ~/.kube ];then
+                         mkdir -p ~/.kube
+                      fi
+                      cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+                      pwd 
+                      ls -l
+                      source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                      deploy_kafka
+                  """)
+                  if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
+                      println("Configuring Kafka in flowcollector...")
+                      kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
+                          source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                          update_flowcollector_use_kafka_deploymentModel
+                  """)
+                      if (kafkaFlowControlReturnCode.toInteger() != 0){
+                         error('Failed to update flowcollector use kafka deploymentModel :(')
+                      }
+                  }
+                  
+                  // fail pipeline if installation and/or configuration failed
+                  if (kafkaReturnCode.toInteger() != 0 ) {
+                      error('Failed to enable Kafka in flowcollector :(')
+                  }
+                  // otherwise continue and display controller and updated FLP pods running in cluster
+                  else {
+                      println('Successfully enabled Kafka with flowcollector :)')
+                      sh(returnStatus: true, script: '''
+                          oc get pods -n openshift-operators
+                          oc get pods -n netobserv
+                      ''')
+                  }
+              }
+              else {
+                  println('Skipping Kafka configuration...')
+              }
+          }
       }
     }
     stage('Run Kube-Burner Test') {
