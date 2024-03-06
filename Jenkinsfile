@@ -574,8 +574,15 @@ pipeline {
                 projectName: 'ocp-common/Flexy-install',
                 selector: specific(params.BUILD_NUMBER),
                 target: 'flexy-artifacts'
-                )                
+                )
+
                 script {                    
+                    copyKubeconfigCode = sh(returnStatus: true, script: """
+                    if [ ! -d ~/.kube ];then
+                       mkdir -p ~/.kube
+                    fi
+                    cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config                    
+                    """)
                     // capture NetObserv release and add it to build description
                     env.RELEASE = sh(returnStdout: true, script: "oc get pods -l app=netobserv-operator -o jsonpath='{.items[*].spec.containers[1].env[0].value}' -A").trim()
                     if (env.RELEASE != '') {
@@ -679,6 +686,12 @@ pipeline {
                 target: 'flexy-artifacts'
                 )                
                 script {
+                    copyKubeconfigCode = sh(returnStatus: true, script: """
+                    if [ ! -d ~/.kube ];then
+                       mkdir -p ~/.kube
+                    fi
+                    cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config                    
+                    """)                    
                     // set build name and remove previous artifacts
                     currentBuild.displayName = "${currentBuild.displayName}-${params.WORKLOAD}"
                     sh(script: "rm -rf $WORKSPACE/workload-artifacts/*.json")
