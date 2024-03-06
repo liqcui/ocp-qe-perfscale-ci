@@ -437,6 +437,7 @@ pipeline {
       }
     }
     stage('Install Loki Operator') {
+            agent { label params['JENKINS_AGENT_LABEL'] }
             when {
                 expression { params.LOKI_OPERATOR != 'None' }
             }
@@ -468,6 +469,7 @@ pipeline {
             }
     }
     stage('Install NetObserv Operator') {
+            agent { label params['JENKINS_AGENT_LABEL'] }
             when {
                 expression { params.INSTALLATION_SOURCE != 'None' }
             }
@@ -541,6 +543,7 @@ pipeline {
             }
     }
     stage('Configure NetObserv, flowcollector, and Kafka') {
+            agent { label params['JENKINS_AGENT_LABEL'] }
             steps {
                 script {
                     // capture NetObserv release and add it to build description
@@ -636,6 +639,7 @@ pipeline {
     
 
     stage('Run Workload') {
+            agent { label params['JENKINS_AGENT_LABEL'] }
             when {
                 expression { params.WORKLOAD != 'None' }
             }
@@ -726,10 +730,6 @@ pipeline {
                 }
             }
     }
-
-
-
-
     stage("Create google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when { 
