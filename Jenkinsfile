@@ -178,17 +178,17 @@ pipeline {
             defaultValue: 'master',
             description: 'You can change this to point to a branch on your fork if needed'
         )
-       booleanParam(
+      booleanParam(
             name: 'ENABLE_KAFKA',
             defaultValue: false,
             description: 'Check this box to setup Kafka for NetObserv or to update Kafka configs even if it is already installed'
-        )
-       booleanParam(
+      )
+      booleanParam(
             name: 'ENABLE_FLOWCOLLECTOR_KAFKA',
             defaultValue: false,
             description: 'Check this box to config flowcontroller to kafak development mode'
-        )
-       choice(
+      )
+      choice(
             name: 'TOPIC_PARTITIONS',
             choices: [6, 10, 24, 48],
             description: '''
@@ -198,23 +198,159 @@ pipeline {
                 24 - Perf testing with worker nodes <= 50<br/>
                 48 - Perf testing with worker nodes <= 100<br/>
             '''
-        )
-        string(
+      )
+      string(
             name: 'FLP_KAFKA_REPLICAS',
             defaultValue: '3',
             description: '''
                 Replicas should be at least half the number of Kafka TOPIC_PARTITIONS and should not exceed number of TOPIC_PARTITIONS or number of nodes:<br/>
                 3 - default for non-perf testing environments<br/>
             '''
-        )
-        string(
+      )
+      string(
             name: 'BROKER_REPLICAS',
             defaultValue: '3',
             description: '''
                 Replicas of kafka broker:<br/>
                 3 - default for non-perf testing environments<br/>
             '''
+      )
+      choice(
+            name: 'LOKI_OPERATOR',
+            choices: ['None', 'Released', 'Unreleased'],
+            description: '''
+                You can use either the latest released or unreleased version of Loki Operator:<br/>
+                <b>Released</b> installs the <b>latest released downstream</b> version of the operator, i.e. what is available to customers<br/>
+                <b>Unreleased</b> installs the <b>latest unreleased downstream</b> version of the operator, i.e. the most recent internal bundle<br/>
+                If <b>None</b> is selected the installation will be skipped
+            '''
+      )
+      choice(
+            name: 'LOKISTACK_SIZE',
+            choices: ['1x.extra-small', '1x.small', '1x.medium'],
+            description: '''
+                Depending on size of cluster nodes, use following guidance to choose LokiStack size:<br/>
+                1x.extra-small - Nodes size < m6i.4xlarge<br/>
+                1x.small - Nodes size >= m6i.4xlarge<br/>
+                1x.medium - Nodes size >= m6i.8xlarge<br/>
+            '''
+      )
+      separator(
+            name: 'NETOBSERV_CONFIG_OPTIONS',
+            sectionHeader: 'Network Observability Configuration Options',
+            sectionHeaderStyle: '''
+                font-size: 14px;
+                font-weight: bold;
+                font-family: 'Orienta', sans-serif;
+            '''
+      )
+      choice(
+            name: 'INSTALLATION_SOURCE',
+            choices: ['None', 'Official', 'Internal', 'OperatorHub', 'Source'],
+            description: '''
+                Network Observability can be installed from the following sources:<br/>
+                <b>Official</b> installs the <b>latest released downstream</b> version of the operator, i.e. what is available to customers<br/>
+                <b>Internal</b> installs the <b>latest unreleased downstream</b> version of the operator, i.e. the most recent internal bundle<br/>
+                <b>OperatorHub</b> installs the <b>latest released upstream</b> version of the operator, i.e. what is currently available on OperatorHub<br/>
+                <b>Source</b> installs the <b>latest unreleased upstream</b> version of the operator, i.e. directly from the main branch of the upstream source code<br/>
+                If <b>None</b> is selected the installation will be skipped
+            '''
+      )
+              string(
+            name: 'IIB_OVERRIDE',
+            defaultValue: '',
+            description: '''
+                If using Internal installation, you can specify here a specific internal index image to use in the CatalogSource rathar than using the most recent bundle<br/>
+                These IDs can be found in CVP emails under 'Index Image Location' section<br/>
+                e.g. <b>450360</b>
+            '''
         )
+        string(
+            name: 'OPERATOR_PREMERGE_OVERRIDE',
+            defaultValue: '',
+            description: '''
+                If using Source installation, you can specify here a specific premerge image to use in the CatalogSource rather than using the main branch<br/>
+                These SHA hashes can be found in PR's after adding the label '/ok-to-test'<br/>
+                e.g. <b>e2bdef6</b>
+            '''
+        )
+        string(
+            name: 'FLP_PREMERGE_OVERRIDE',
+            defaultValue: '',
+            description: '''
+                You can specify here a specific FLP premerge image to use rather than using the operator defined image<br/>
+                These SHA hashes can be found in FLP PR's after adding the label '/ok-to-test'<br/>
+                e.g. <b>e2bdef6</b>
+            '''
+        )
+        string(
+            name: 'EBPF_PREMERGE_OVERRIDE',
+            defaultValue: '',
+            description: '''
+                You can specify here a specific eBPF premerge image to use rather than using the operator defined image<br/>
+                These SHA hashes can be found in eBPF PR's after adding the label '/ok-to-test'<br/>
+                e.g. <b>e2bdef6</b>
+            '''
+        )
+        string(
+            name: 'PLUGIN_PREMERGE_OVERRIDE',
+            defaultValue: '',
+            description: '''
+                You can specify here a specific ConsolePlugin premerge image rather than using the operator defined image<br/>
+                These SHA hashes can be found in ConsolePlugin PR's after adding the label '/ok-to-test'<br/>
+                e.g. <b>e2bdef6</b>
+            '''
+        )
+              string(
+            name: 'CONTROLLER_MEMORY_LIMIT',
+            defaultValue: '',
+            description: 'Note that 800Mi = 800 mebibytes, i.e. 0.8 Gi'
+        )
+        separator(
+            name: 'FLOWCOLLECTOR_CONFIG_OPTIONS',
+            sectionHeader: 'Flowcollector Configuration Options',
+            sectionHeaderStyle: '''
+                font-size: 14px;
+                font-weight: bold;
+                font-family: 'Orienta', sans-serif;
+            '''
+        )
+        string(
+            name: 'EBPF_SAMPLING_RATE',
+            defaultValue: '',
+            description: 'Rate at which to sample flows'
+        )
+        string(
+            name: 'EBPF_MEMORY_LIMIT',
+            defaultValue: '',
+            description: 'Note that 800Mi = 800 mebibytes, i.e. 0.8 Gi'
+        )
+        string(
+            name: 'FLP_CPU_LIMIT',
+            defaultValue: '',
+            description: 'Note that 1000m = 1000 millicores, i.e. 1 core'
+        )
+        string(
+            name: 'FLP_MEMORY_LIMIT',
+            defaultValue: '',
+            description: 'Note that 800Mi = 800 mebibytes, i.e. 0.8 Gi'
+        )
+       string(
+            name: 'LARGE_SCALE_CLIENTS',
+            defaultValue: '1 80',
+            description: '''
+                Only for <b>router-perf</b><br/>
+                Threads/route to use in the large scale scenario
+            '''
+        )
+        string(
+            name: 'LARGE_SCALE_CLIENTS_MIX',
+            defaultValue: '1 25',
+            description: '''
+                Only for <b>router-perf</b><br/>
+                Threads/route to use in the large scale scenario with mix termination
+            '''
+        )  
       string(
           name: 'SCALE_UP',
           defaultValue: '0',
@@ -300,213 +436,300 @@ pipeline {
           }
       }
     }
-    stage('Deploy Kafka') {
-      agent { label params['JENKINS_AGENT_LABEL'] }
-      when {
-                expression { params.ENABLE_KAFKA == true }
-      }
-      steps {
-          // checkout performance dashboards repo
-          checkout([
-              $class: 'GitSCM',
-              branches: [[name: params.DITTYBOPPER_REPO_BRANCH ]],
-              userRemoteConfigs: [[url: params.DITTYBOPPER_REPO ]],
-              extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'performance-dashboards']]
-          ])
-          copyArtifacts(
-          filter: '',
-          fingerprintArtifacts: true,
-          projectName: 'ocp-common/Flexy-install',
-          selector: specific(params.BUILD_NUMBER),
-          target: 'flexy-artifacts'
-          )
-          script {
-              // attempt to enable or update Kafka if applicable
-              println('Checking if Kafka needs to be enabled or updated...')
-              if (params.ENABLE_KAFKA == true) {
-                  println("Deploy Kafka in Openshift...")
-                  kafkaReturnCode = sh(returnStatus: true, script: """
-                      if [ ! -d ~/.kube ];then
-                         mkdir -p ~/.kube
-                      fi
-                      cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
-                      pwd 
-                      ls -l
-                      source $WORKSPACE/scripts/netobserv.sh
-                      deploy_kafka
-                      deploy-xk6-kafka
-                  """)
-                  if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
-                      println("Configuring Kafka in flowcollector...")
-                      kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
-                          source $WORKSPACE/scripts/netobserv.sh
-                          update_flowcollector_use_kafka_deploymentModel
-                  """)
-                      if (kafkaFlowControlReturnCode.toInteger() != 0){
-                         error('Failed to update flowcollector use kafka deploymentModel :(')
-                      }
-                  }
-                  
-                  // fail pipeline if installation and/or configuration failed
-                  if (kafkaReturnCode.toInteger() != 0 ) {
-                      error('Failed to enable Kafka in flowcollector :(')
-                  }
-                  // otherwise continue and display controller and updated FLP pods running in cluster
-                  else {
-                      println('Successfully enabled Kafka with flowcollector :)')
-                      sh(returnStatus: true, script: '''
-                          oc get pods -n openshift-operators
-                          oc get pods -n netobserv
-                      ''')
-                  }
-              }
-              else {
-                  println('Skipping Kafka configuration...')
-              }
-          }
-      }
-    }
-    stage('Run Kube-Burner Test') {
-        agent {
-          kubernetes {
-            cloud 'PSI OCP-C1 agents'
-            yaml """\
-              apiVersion: v1
-              kind: Pod
-              metadata:
-                labels:
-                  label: ${JENKINS_AGENT_LABEL}
-              spec:
-                containers:
-                - name: "jnlp"
-                  image: "image-registry.openshift-image-registry.svc:5000/aosqe/cucushift:${JENKINS_AGENT_LABEL}-rhel8"
-                  resources:
-                    requests:
-                      memory: "8Gi"
-                      cpu: "2"
-                    limits:
-                      memory: "8Gi"
-                      cpu: "2"
-                  imagePullPolicy: Always
-                  workingDir: "/home/jenkins/ws"
-                  tty: true
-              """.stripIndent()
-          }
-        }
-        steps {
-            deleteDir()
-            checkout([
-                $class: 'GitSCM',
-                branches: [[name: params.E2E_BENCHMARKING_REPO_BRANCH ]],
-                doGenerateSubmoduleConfigurations: false,
-                userRemoteConfigs: [[url: params.E2E_BENCHMARKING_REPO ]]
-            ])
-            copyArtifacts(
-                filter: '',
-                fingerprintArtifacts: true,
-                projectName: 'ocp-common/Flexy-install',
-                selector: specific(params.BUILD_NUMBER),
-                target: 'flexy-artifacts'
-            )
-            script {
-                buildinfo = readYaml file: "flexy-artifacts/BUILDINFO.yml"
-                currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}-${params.WORKLOAD}"
-                currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
-                buildinfo.params.each { env.setProperty(it.key, it.value) }
+    stage('Install Loki Operator') {
+            when {
+                expression { params.LOKI_OPERATOR != 'None' }
             }
-            script {
-                if (params.EMAIL_ID_OVERRIDE != '') {
-                    env.EMAIL_ID_FOR_RESULTS_SHEET = params.EMAIL_ID_OVERRIDE
-                }
-                else {
-                    env.EMAIL_ID_FOR_RESULTS_SHEET = "${userId}@redhat.com"
-                }
-                withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
-                    file(credentialsId: 'sa-google-sheet', variable: 'GSHEET_KEY_LOCATION')]) {
-                    RETURNSTATUS = sh(returnStatus: true, script: '''
-                        # Get ENV VARS Supplied by the user to this job and store in .env_override
-                        echo "$ENV_VARS" > .env_override
-                        # Export those env vars so they could be used by CI Job
-                        set -a && source .env_override && set +a
-                        cp $GSHEET_KEY_LOCATION $WORKSPACE/.gsheet.json
-                        export GSHEET_KEY_LOCATION=$WORKSPACE/.gsheet.json
-                        export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
-                        export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
-                        mkdir -p ~/.kube
-
-                        cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
-                        
-                        export CHURN_DURATION=${CHURN_DURATION:-10m}
-                        export CHURN_DELAY=${CHURN_DELAY:-60s}
-                        export CHURN_PERCENT=${CHURN_PERCENT:-10}
-                        python3.9 --version
-                        python3.9 -m pip install virtualenv
-                        python3.9 -m virtualenv venv3
-                        source venv3/bin/activate
-                        python --version
-                        
-                        set -o pipefail
- 
-                        cd workloads/kube-burner-ocp-wrapper
-                        pip install jq
-                        if [[ $CHURN == true ]]; then
-                            echo "churn true"
-                            export EXTRA_FLAGS="--churn=true --churn-delay=${CHURN_DELAY} --churn-duration=${CHURN_DURATION} --churn-percent=${CHURN_PERCENT}"
-                        fi
-                        if [[ $WORKLOAD == *"cluster-density"* ]]; then
-                            export ITERATIONS=$VARIABLE
-                        elif [[ $WORKLOAD == *"node-density"* ]]; then
-                            export EXTRA_FLAGS="$EXTRA_FLAGS --pods-per-node=$VARIABLE"
-                        fi
-                        export GC=${CLEANUP}
-                        ./run.sh |& tee "kube-burner-ocp.out"
-                        ''')
+            steps {
+                script {
+                    // if an 'Unreleased' installation, use aosqe-index image for unreleased CatalogSource image
+                    if (params.LOKI_OPERATOR == 'Unreleased') {
+                        env.DOWNSTREAM_IMAGE = "quay.io/openshift-qe-optional-operators/aosqe-index:v${env.MAJOR_VERSION}.${env.MINOR_VERSION}"
+                    }
+                    // attempt installation of Loki Operator from selected source
+                    println("Installing ${params.LOKI_OPERATOR} version of Loki Operator...")
+                    lokiReturnCode = sh(returnStatus: true, script: """
+                        source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                        deploy_lokistack
+                    """)
+                    // fail pipeline if installation failed
+                    if (lokiReturnCode.toInteger() != 0) {
+                        error("${params.LOKI_OPERATOR} version of Loki Operator installation failed :(")
+                    }
+                    // otherwise continue and display controller and lokistack pods running in cluster
+                    else {
+                        println("Successfully installed ${params.LOKI_OPERATOR} version of Loki Operator :)")
                         sh(returnStatus: true, script: '''
-                        ls /tmp
-                        folder_name=$(ls -t -d /tmp/*/ | head -1)
-                        file_loc=$folder_name"*"
-                        cd workloads/kube-burner-ocp-wrapper
-                        cp $file_loc .
+                            oc get pods -n openshift-operators-redhat
+                            oc get pods -n netobserv
                         ''')
-                    archiveArtifacts(
-                        artifacts: 'workloads/kube-burner-ocp-wrapper/kube-burner-ocp.out',
-                        allowEmptyArchive: true,
-                        fingerprint: true
-                    )
-
-                    archiveArtifacts(
-                        artifacts: 'workloads/kube-burner-ocp-wrapper/index_data.json',
-                        allowEmptyArchive: true,
-                        fingerprint: true
-                    )
-
-                    workloadInfo = readJSON file: "workloads/kube-burner-ocp-wrapper/index_data.json"
-                    workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
-                    // update build description fields
-                    // UUID
-                    currentBuild.description += "\n<b>UUID:</b> ${env.UUID}<br/>"
-                    if (RETURNSTATUS.toInteger() == 0) {
-                        status = "PASS"
-                    }
-                    else { 
-                        currentBuild.result = "FAILURE"
                     }
                 }
             }
-            checkout([
-                $class: 'GitSCM',
-                branches: [[name: 'main' ]],
-                userRemoteConfigs: [[url: "https://github.com/openshift-qe/ocp-qe-perfscale-ci" ]],
-                extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'helpful_scripts']]
-            ])
-            copyArtifacts(
-                fingerprintArtifacts: true, 
-                projectName: JOB_NAME,
-                selector: specific(JENKINS_JOB_NUMBER),
-                target: 'workload-artifacts'
-            )
-        }
     }
+    stage('Install NetObserv Operator') {
+            when {
+                expression { params.INSTALLATION_SOURCE != 'None' }
+            }
+            steps {
+                script {
+                    // if an 'Internal' installation, determine whether to use aosqe-index image or specific IIB image
+                    if (params.INSTALLATION_SOURCE == 'Internal' && params.IIB_OVERRIDE != '') {
+                        env.DOWNSTREAM_IMAGE = "brew.registry.redhat.io/rh-osbs/iib:${params.IIB_OVERRIDE}"
+                    }
+                    else {
+                        env.DOWNSTREAM_IMAGE = "quay.io/openshift-qe-optional-operators/aosqe-index:v${env.MAJOR_VERSION}.${env.MINOR_VERSION}"
+                    }
+                    // if a 'Source' installation, determine whether to use main image or specific premerge image
+                    if (params.INSTALLATION_SOURCE == 'Source' && params.OPERATOR_PREMERGE_OVERRIDE != '') {
+                        env.UPSTREAM_IMAGE = "quay.io/netobserv/network-observability-operator-catalog:v0.0.0-${OPERATOR_PREMERGE_OVERRIDE}"
+                    }
+                    else {
+                        env.UPSTREAM_IMAGE = "quay.io/netobserv/network-observability-operator-catalog:v0.0.0-main"
+                    }
+                    // attempt installation of Network Observability from selected source
+                    println("Installing Network Observability from ${params.INSTALLATION_SOURCE}...")
+                    netobservReturnCode = sh(returnStatus: true, script: """
+                        source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                        deploy_netobserv
+                    """)
+                    // fail pipeline if installation failed
+                    if (netobservReturnCode.toInteger() != 0) {
+                        error("Network Observability installation from ${params.INSTALLATION_SOURCE} failed :(")
+                    }
+                    // patch in premerge images if specified, fail pipeline if patching fails on any component
+                    if (params.EBPF_PREMERGE_OVERRIDE != '') {
+                        env.EBPF_PREMERGE_IMAGE = "quay.io/netobserv/netobserv-ebpf-agent:${EBPF_PREMERGE_OVERRIDE}"
+                        netobservEBPFPatchReturnCode = sh(returnStatus: true, script: """
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            patch_netobserv "ebpf" $EBPF_PREMERGE_IMAGE
+                        """)
+                        if (netobservEBPFPatchReturnCode.toInteger() != 0) {
+                            error("Network Observability eBPF image patch ${params.EBPF_PREMERGE_OVERRIDE} failed :(")
+                        }
+                    }
+                    if (params.FLP_PREMERGE_OVERRIDE != '') {
+                        env.FLP_PREMERGE_IMAGE = "quay.io/netobserv/flowlogs-pipeline:${FLP_PREMERGE_OVERRIDE}"
+                        netobservFLPPatchReturnCode = sh(returnStatus: true, script: """
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            patch_netobserv "flp" $FLP_PREMERGE_IMAGE
+                        """)
+                        if (netobservFLPPatchReturnCode.toInteger() != 0) {
+                            error("Network Observability FLP image patch ${params.FLP_PREMERGE_OVERRIDE} failed :(")
+                        }
+                    }
+                    if (params.PLUGIN_PREMERGE_OVERRIDE != '') {
+                        env.PLUGIN_PREMERGE_IMAGE = "quay.io/netobserv/network-observability-console-plugin:${PLUGIN_PREMERGE_OVERRIDE}"
+                        netobservPluginPatchReturnCode = sh(returnStatus: true, script: """
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            patch_netobserv "plugin" $PLUGIN_PREMERGE_IMAGE
+                        """)
+                        if (netobservPluginPatchReturnCode.toInteger() != 0) {
+                            error("Network Observability Plugin image patch ${params.PLUGIN_PREMERGE_OVERRIDE} failed :(")
+                        }
+                    }
+                    // if installation and patching succeeds, continue and display controller, FLP, and eBPF pods running in cluster
+                    else {
+                        println("Successfully installed Network Observability from ${params.INSTALLATION_SOURCE} :)")
+                        sh(returnStatus: true, script: '''
+                            oc get pods -n openshift-netobserv-operator
+                            oc get pods -n netobserv
+                            oc get pods -n netobserv-privileged
+                        ''')
+                    }
+                }
+            }
+    }
+    stage('Configure NetObserv, flowcollector, and Kafka') {
+            steps {
+                script {
+                    // capture NetObserv release and add it to build description
+                    env.RELEASE = sh(returnStdout: true, script: "oc get pods -l app=netobserv-operator -o jsonpath='{.items[*].spec.containers[1].env[0].value}' -A").trim()
+                    if (env.RELEASE != '') {
+                        currentBuild.description += "NetObserv Release: <b>${env.RELEASE}</b><br/>"
+                    }
+                    // attempt updating common parameters of NetObserv and flowcollector where specified
+                    println('Updating common parameters of NetObserv and flowcollector where specified...')
+                    if (params.CONTROLLER_MEMORY_LIMIT != '') {
+                        controllerReturnCode = sh(returnStatus: true, script: """
+                            oc -n openshift-netobserv-operator patch csv $RELEASE --type=json -p "[{"op": "replace", "path": "/spec/install/spec/deployments/0/spec/template/spec/containers/0/resources/limits/memory", "value": ${params.CONTROLLER_MEMORY_LIMIT}}]"
+                            sleep 60
+                        """)
+                        if (controllerReturnCode.toInteger() != 0) {
+                            error('Updating controller memory limit failed :(')
+                        }
+                    }
+                    if (params.EBPF_SAMPLING_RATE != '') {
+                        samplingReturnCode = sh(returnStatus: true, script: """
+                            oc patch flowcollector cluster --type=json -p "[{"op": "replace", "path": "/spec/agent/ebpf/sampling", "value": ${params.EBPF_SAMPLING_RATE}}] -n netobserv"
+                        """)
+                        if (samplingReturnCode.toInteger() != 0) {
+                            error('Updating eBPF sampling rate failed :(')
+                        }
+                    }
+                    if (params.EBPF_MEMORY_LIMIT != '') {
+                        ebpfMemReturnCode = sh(returnStatus: true, script: """
+                            oc patch flowcollector cluster --type=json -p "[{"op": "replace", "path": "/spec/agent/ebpf/resources/limits/memory", "value": "${params.EBPF_MEMORY_LIMIT}"}] -n netobserv"
+                        """)
+                        if (ebpfMemReturnCode.toInteger() != 0) {
+                            error('Updating eBPF memory limit failed :(')
+                        }
+                    }
+                    if (params.FLP_CPU_LIMIT != '') {
+                        flpCpuReturnCode = sh(returnStatus: true, script: """
+                            oc patch flowcollector cluster --type=json -p "[{"op": "replace", "path": "/spec/processor/resources/limits/cpu", "value": "${params.FLP_CPU_LIMIT}"}] -n netobserv"
+                        """)
+                        if (flpCpuReturnCode.toInteger() != 0) {
+                            error('Updating FLP CPU limit failed :(')
+                        }
+                    }
+                    if (params.FLP_MEMORY_LIMIT != '') {
+                        flpMemReturnCode = sh(returnStatus: true, script: """
+                            oc patch flowcollector cluster --type=json -p "[{"op": "replace", "path": "/spec/processor/resources/limits/memory", "value": "${params.FLP_MEMORY_LIMIT}"}] -n netobserv"
+                        """)
+                        if (flpMemReturnCode.toInteger() != 0) {
+                            error('Updating FLP memory limit failed :(')
+                        }
+                    }
+                    println('Successfully updated common parameters of NetObserv and flowcollector :)')
+                    // attempt to enable or update Kafka if applicable
+                    println('Checking if Kafka needs to be enabled or updated...')
+                    if (params.ENABLE_KAFKA == true) {
+                        println("Deploy Kafka in Openshift...")
+                        kafkaReturnCode = sh(returnStatus: true, script: """
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            deploy_kafka
+                            deploy-xk6-kafka
+                        """)
+
+                        if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
+                        println("Configuring Kafka in flowcollector...")
+                        kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
+                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            update_flowcollector_use_kafka_deploymentModel
+                        """)
+                        if (kafkaFlowControlReturnCode.toInteger() != 0){
+                               error('Failed to update flowcollector use kafka deploymentModel :(')
+                        }
+
+                        }
+                        // fail pipeline if installation and/or configuration failed
+                        if (kafkaReturnCode.toInteger() != 0 ) {
+                            error('Failed to enable Kafka in flowcollector :(')
+                        }
+                        // otherwise continue and display controller and updated FLP pods running in cluster
+                        else {
+                            println('Successfully enabled Kafka with flowcollector :)')
+                            sh(returnStatus: true, script: '''
+                                oc get pods -n openshift-operators
+                                oc get pods -n netobserv
+                            ''')
+                        }
+                    }
+                    else {
+                        println('Skipping Kafka configuration...')
+                    }
+                }
+            }
+        }
+    
+    
+
+    stage('Run Workload') {
+            when {
+                expression { params.WORKLOAD != 'None' }
+            }
+            steps {
+                script {
+                    // set build name and remove previous artifacts
+                    currentBuild.displayName = "${currentBuild.displayName}-${params.WORKLOAD}"
+                    sh(script: "rm -rf $WORKSPACE/workload-artifacts/*.json")
+                    // build workload job based off selected workload
+                    if (params.WORKLOAD == 'router-perf') {
+                        env.JENKINS_JOB = 'scale-ci/e2e-benchmarking-multibranch-pipeline/router-perf'
+                        workloadJob = build job: env.JENKINS_JOB, parameters: [
+                            string(name: 'BUILD_NUMBER', value: params.FLEXY_BUILD_NUMBER),
+                            booleanParam(name: 'CERBERUS_CHECK', value: params.CERBERUS_CHECK),
+                            booleanParam(name: 'MUST_GATHER', value: true),
+                            string(name: 'IMAGE', value: NETOBSERV_MUST_GATHER_IMAGE),
+                            string(name: 'JENKINS_AGENT_LABEL', value: params.JENKINS_AGENT_LABEL),
+                            booleanParam(name: 'GEN_CSV', value: false),
+                            string(name: 'LARGE_SCALE_CLIENTS', value: params.LARGE_SCALE_CLIENTS),
+                            string(name: 'LARGE_SCALE_CLIENTS_MIX', value: params.LARGE_SCALE_CLIENTS_MIX),
+                            string(name: 'E2E_BENCHMARKING_REPO', value: params.E2E_BENCHMARKING_REPO),
+                            string(name: 'E2E_BENCHMARKING_REPO_BRANCH', value: params.E2E_BENCHMARKING_REPO_BRANCH)
+                        ]
+                    }
+                    else if (params.WORKLOAD == 'ingress-perf') {
+                        env.JENKINS_JOB = 'scale-ci/e2e-benchmarking-multibranch-pipeline/ingress-perf'
+                        workloadJob = build job: env.JENKINS_JOB, parameters: [
+                            string(name: 'BUILD_NUMBER', value: params.FLEXY_BUILD_NUMBER),
+                            booleanParam(name: 'CERBERUS_CHECK', value: params.CERBERUS_CHECK),
+                            booleanParam(name: 'MUST_GATHER', value: true),
+                            string(name: 'IMAGE', value: NETOBSERV_MUST_GATHER_IMAGE),
+                            string(name: 'JENKINS_AGENT_LABEL', value: params.JENKINS_AGENT_LABEL),
+                            booleanParam(name: 'GEN_CSV', value: false),
+                            string(name: 'E2E_BENCHMARKING_REPO', value: params.E2E_BENCHMARKING_REPO),
+                            string(name: 'E2E_BENCHMARKING_REPO_BRANCH', value: params.E2E_BENCHMARKING_REPO_BRANCH)
+                        ]
+                    }
+                    else {
+                        env.JENKINS_JOB = 'scale-ci/e2e-benchmarking-multibranch-pipeline/kube-burner-ocp'
+                        workloadJob = build job: env.JENKINS_JOB, parameters: [
+                            string(name: 'BUILD_NUMBER', value: params.FLEXY_BUILD_NUMBER),
+                            string(name: 'WORKLOAD', value: params.WORKLOAD),
+                            booleanParam(name: 'CLEANUP', value: true),
+                            booleanParam(name: 'CERBERUS_CHECK', value: params.CERBERUS_CHECK),
+                            booleanParam(name: 'MUST_GATHER', value: true),
+                            string(name: 'IMAGE', value: NETOBSERV_MUST_GATHER_IMAGE),
+                            string(name: 'VARIABLE', value: params.VARIABLE), 
+                            string(name: 'NODE_COUNT', value: params.NODE_COUNT),
+                            booleanParam(name: 'GEN_CSV', value: false),
+                            string(name: 'JENKINS_AGENT_LABEL', value: params.JENKINS_AGENT_LABEL),
+                            string(name: 'E2E_BENCHMARKING_REPO', value: params.E2E_BENCHMARKING_REPO),
+                            string(name: 'E2E_BENCHMARKING_REPO_BRANCH', value: params.E2E_BENCHMARKING_REPO_BRANCH)
+                        ]
+                    }
+                    // fail pipeline if workload failed
+                    if (workloadJob.result != 'SUCCESS') {
+                        error('Workload job failed :(')
+                    }
+                    // otherwise continue and update build description with workload job link
+                    else {
+                        println("Successfully ran workload job :)")
+                        env.JENKINS_BUILD = "${workloadJob.getNumber()}"
+                        currentBuild.description += "Workload Job: <b><a href=${workloadJob.absoluteUrl}>${env.JENKINS_BUILD}</a></b> (workload <b>${params.WORKLOAD}</b> was run)<br/>"
+                    }
+                }
+                // copy artifacts from workload job
+                copyArtifacts(
+                    fingerprintArtifacts: true, 
+                    projectName: env.JENKINS_JOB,
+                    selector: specific(env.JENKINS_BUILD),
+                    target: 'workload-artifacts',
+                    flatten: true
+                )
+                script {
+                    // set new env vars from workload 'index_data' JSON file and update build description fields
+                    workloadInfo = readJSON(file: "$WORKSPACE/workload-artifacts/index_data.json")
+                    workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
+                    // UUID
+                    currentBuild.description += "<b>UUID:</b> ${env.UUID}<br/>"
+                    // STARTDATE is string rep of start time
+                    currentBuild.description += "<b>STARTDATE:</b> ${env.STARTDATE}<br/>"
+                    // ENDDATE is string rep of end time
+                    currentBuild.description += "<b>ENDDATE:</b> ${env.ENDDATE}<br/>"
+                    // STARTDATEUNIXTIMESTAMP is unix timestamp of start time
+                    currentBuild.description += "<b>STARTDATEUNIXTIMESTAMP:</b> ${env.STARTDATEUNIXTIMESTAMP}<br/>"
+                    // ENDDATEUNIXTIMESTAMP is unix timestamp of end time
+                    currentBuild.description += "<b>ENDDATEUNIXTIMESTAMP:</b> ${env.ENDDATEUNIXTIMESTAMP}<br/>"
+                }
+            }
+    }
+
+
+
+
     stage("Create google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when { 
