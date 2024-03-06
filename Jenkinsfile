@@ -442,7 +442,14 @@ pipeline {
                 expression { params.LOKI_OPERATOR != 'None' }
             }
             steps {
-                script {
+                copyArtifacts(
+                filter: '',
+                fingerprintArtifacts: true,
+                projectName: 'ocp-common/Flexy-install',
+                selector: specific(params.BUILD_NUMBER),
+                target: 'flexy-artifacts'
+                )
+                script {                  
                     // if an 'Unreleased' installation, use aosqe-index image for unreleased CatalogSource image
                     if (params.LOKI_OPERATOR == 'Unreleased') {
                         env.DOWNSTREAM_IMAGE = "quay.io/openshift-qe-optional-operators/aosqe-index:v${env.MAJOR_VERSION}.${env.MINOR_VERSION}"
@@ -450,6 +457,11 @@ pipeline {
                     // attempt installation of Loki Operator from selected source
                     println("Installing ${params.LOKI_OPERATOR} version of Loki Operator...")
                     lokiReturnCode = sh(returnStatus: true, script: """
+                    if [ ! -d ~/.kube ];then
+                       mkdir -p ~/.kube
+                    fi
+                    cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+                    
                         source $WORKSPACE/scripts/netobserv.sh
                         deploy_lokistack
                     """)
@@ -474,7 +486,14 @@ pipeline {
                 expression { params.INSTALLATION_SOURCE != 'None' }
             }
             steps {
-                script {
+                copyArtifacts(
+                filter: '',
+                fingerprintArtifacts: true,
+                projectName: 'ocp-common/Flexy-install',
+                selector: specific(params.BUILD_NUMBER),
+                target: 'flexy-artifacts'
+                )                
+                script {                    
                     // if an 'Internal' installation, determine whether to use aosqe-index image or specific IIB image
                     if (params.INSTALLATION_SOURCE == 'Internal' && params.IIB_OVERRIDE != '') {
                         env.DOWNSTREAM_IMAGE = "brew.registry.redhat.io/rh-osbs/iib:${params.IIB_OVERRIDE}"
@@ -492,6 +511,10 @@ pipeline {
                     // attempt installation of Network Observability from selected source
                     println("Installing Network Observability from ${params.INSTALLATION_SOURCE}...")
                     netobservReturnCode = sh(returnStatus: true, script: """
+                    if [ ! -d ~/.kube ];then
+                       mkdir -p ~/.kube
+                    fi
+                    cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config                    
                         source $WORKSPACE/scripts/netobserv.sh
                         deploy_netobserv
                     """)
@@ -545,7 +568,14 @@ pipeline {
     stage('Configure NetObserv, flowcollector, and Kafka') {
             agent { label params['JENKINS_AGENT_LABEL'] }
             steps {
-                script {
+                copyArtifacts(
+                filter: '',
+                fingerprintArtifacts: true,
+                projectName: 'ocp-common/Flexy-install',
+                selector: specific(params.BUILD_NUMBER),
+                target: 'flexy-artifacts'
+                )                
+                script {                    
                     // capture NetObserv release and add it to build description
                     env.RELEASE = sh(returnStdout: true, script: "oc get pods -l app=netobserv-operator -o jsonpath='{.items[*].spec.containers[1].env[0].value}' -A").trim()
                     if (env.RELEASE != '') {
@@ -635,15 +665,19 @@ pipeline {
                 }
             }
         }
-    
-    
-
     stage('Run Workload') {
             agent { label params['JENKINS_AGENT_LABEL'] }
             when {
                 expression { params.WORKLOAD != 'None' }
             }
             steps {
+                copyArtifacts(
+                filter: '',
+                fingerprintArtifacts: true,
+                projectName: 'ocp-common/Flexy-install',
+                selector: specific(params.BUILD_NUMBER),
+                target: 'flexy-artifacts'
+                )                
                 script {
                     // set build name and remove previous artifacts
                     currentBuild.displayName = "${currentBuild.displayName}-${params.WORKLOAD}"
