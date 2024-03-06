@@ -450,7 +450,7 @@ pipeline {
                     // attempt installation of Loki Operator from selected source
                     println("Installing ${params.LOKI_OPERATOR} version of Loki Operator...")
                     lokiReturnCode = sh(returnStatus: true, script: """
-                        source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                        source $WORKSPACE/scripts/netobserv.sh
                         deploy_lokistack
                     """)
                     // fail pipeline if installation failed
@@ -492,7 +492,7 @@ pipeline {
                     // attempt installation of Network Observability from selected source
                     println("Installing Network Observability from ${params.INSTALLATION_SOURCE}...")
                     netobservReturnCode = sh(returnStatus: true, script: """
-                        source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                        source $WORKSPACE/scripts/netobserv.sh
                         deploy_netobserv
                     """)
                     // fail pipeline if installation failed
@@ -503,7 +503,7 @@ pipeline {
                     if (params.EBPF_PREMERGE_OVERRIDE != '') {
                         env.EBPF_PREMERGE_IMAGE = "quay.io/netobserv/netobserv-ebpf-agent:${EBPF_PREMERGE_OVERRIDE}"
                         netobservEBPFPatchReturnCode = sh(returnStatus: true, script: """
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            source $WORKSPACE/scripts/netobserv.sh
                             patch_netobserv "ebpf" $EBPF_PREMERGE_IMAGE
                         """)
                         if (netobservEBPFPatchReturnCode.toInteger() != 0) {
@@ -513,7 +513,7 @@ pipeline {
                     if (params.FLP_PREMERGE_OVERRIDE != '') {
                         env.FLP_PREMERGE_IMAGE = "quay.io/netobserv/flowlogs-pipeline:${FLP_PREMERGE_OVERRIDE}"
                         netobservFLPPatchReturnCode = sh(returnStatus: true, script: """
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            source $WORKSPACE/scripts/netobserv.sh
                             patch_netobserv "flp" $FLP_PREMERGE_IMAGE
                         """)
                         if (netobservFLPPatchReturnCode.toInteger() != 0) {
@@ -523,7 +523,7 @@ pipeline {
                     if (params.PLUGIN_PREMERGE_OVERRIDE != '') {
                         env.PLUGIN_PREMERGE_IMAGE = "quay.io/netobserv/network-observability-console-plugin:${PLUGIN_PREMERGE_OVERRIDE}"
                         netobservPluginPatchReturnCode = sh(returnStatus: true, script: """
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            source $WORKSPACE/scripts/netobserv.sh
                             patch_netobserv "plugin" $PLUGIN_PREMERGE_IMAGE
                         """)
                         if (netobservPluginPatchReturnCode.toInteger() != 0) {
@@ -600,7 +600,7 @@ pipeline {
                     if (params.ENABLE_KAFKA == true) {
                         println("Deploy Kafka in Openshift...")
                         kafkaReturnCode = sh(returnStatus: true, script: """
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            source $WORKSPACE/scripts/netobserv.sh
                             deploy_kafka
                             deploy-xk6-kafka
                         """)
@@ -608,7 +608,7 @@ pipeline {
                         if (params.ENABLE_FLOWCOLLECTOR_KAFKA == true) {
                         println("Configuring Kafka in flowcollector...")
                         kafkaFlowControlReturnCode = sh(returnStatus: true, script: """
-                            source $WORKSPACE/ocp-qe-perfscale-ci/scripts/netobserv.sh
+                            source $WORKSPACE/scripts/netobserv.sh
                             update_flowcollector_use_kafka_deploymentModel
                         """)
                         if (kafkaFlowControlReturnCode.toInteger() != 0){
