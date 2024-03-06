@@ -19,7 +19,7 @@ import {
 // Prints module-level constants
 // console.log(kafka);
 
-const brokers = ["kafka-cluster-kafka-brokers:9092"];
+const brokers = ["kafka-cluster-kafka-bootstrap:9092"];
 const topic = "xk6_kafka_consumer_group_topic";
 const groupID = "my-group";
 

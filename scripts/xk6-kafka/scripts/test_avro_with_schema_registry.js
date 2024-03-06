@@ -16,7 +16,7 @@ import {
   SCHEMA_TYPE_AVRO,
 } from "k6/x/kafka"; // import kafka extension
 
-const brokers = ["kafka-cluster-kafka-brokers:9092"];
+const brokers = ["kafka-cluster-kafka-bootstrap:9092"];
 const topic = "com.example.person";
 
 const writer = new Writer({

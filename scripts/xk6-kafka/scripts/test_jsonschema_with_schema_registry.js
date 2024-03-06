@@ -15,7 +15,7 @@ import {
   TOPIC_NAME_STRATEGY,
 } from "k6/x/kafka"; // import kafka extension
 
-const brokers = ["kafka-cluster-kafka-brokers:9092"];
+const brokers = ["kafka-cluster-kafka-bootstrap:9092"];
 const topic = "xk6_jsonschema_test";
 
 const writer = new Writer({

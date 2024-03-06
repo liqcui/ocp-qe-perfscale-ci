@@ -30,7 +30,7 @@ export const options = {
   },
 };
 
-const brokers = ["kafka-cluster-kafka-brokers:9092"];
+const brokers = ["kafka-cluster-kafka-bootstrap:9092"];
 const topic = "xk6_kafka_json_topic";
 
 // SASL config is optional

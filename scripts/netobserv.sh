@@ -428,4 +428,29 @@ spec:
           configMap: 
             name: xk6-kafka-scripts  
 EOF
+  oc -n netobserv apply -f-<<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kafka-exporter
+  name: kafka-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-exporter
+  template:
+    metadata:
+      labels:
+        app: kafka-exporter
+    spec:
+      nodeSelector:
+        node-role.kubernetes.io/workload: ""
+      containers:
+      - image: danielqsj/kafka-exporter
+        name: kafka-exporter
+        imagePullPolicy: Always
+        command: ["kafka_exporter","--kafka.server=kafka-cluster-kafka-bootstrap:9092"]
+EOF
 }

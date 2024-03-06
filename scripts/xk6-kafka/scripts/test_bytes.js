@@ -14,7 +14,7 @@ import {
   SCHEMA_TYPE_BYTES,
 } from "k6/x/kafka"; // import kafka extension
 
-const brokers = ["kafka-cluster-kafka-brokers:9092"];
+const brokers = ["kafka-cluster-kafka-bootstrap:9092"];
 const topic = "xk6_kafka_byte_array_topic";
 
 const writer = new Writer({
