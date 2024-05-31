@@ -59,12 +59,11 @@ pipeline {
         name: 'EUS_CHANNEL',
         description: 'EUS Channel type, will be ignored if EUS_UPGRADE is not set to true'
       )
-
       booleanParam(
         name: 'ENABLE_FORCE',
         defaultValue: true,
         description: 'This variable will force the upgrade or not'
-      )
+      )      
       booleanParam(
         name: 'SCALE',
         defaultValue: false,
@@ -85,6 +84,11 @@ pipeline {
           choices: ["cluster-density-v2", "node-density", "node-density-heavy","node-density-cni","pvc-density","networkpolicy-matchexpressions","networkpolicy-matchlabels","networkpolicy-multitenant","crd-scale"],
           description: 'Type of kube-burner job to run'
       )
+      booleanParam(
+          name: 'OVN_LIVE_MIGRATION',
+          defaultValue: false,
+          description: 'Value to enable OVN live migration'
+      )      
       booleanParam(
           name: 'WRITE_TO_FILE',
           defaultValue: false,
@@ -272,7 +276,7 @@ pipeline {
           }
     }
     stage('Scale up cluster') {
-      agent { label params['JENKINS_AGENT_LABEL'] }
+        agent { label params['JENKINS_AGENT_LABEL'] }
         when {
             expression { params.SCALE_UP.toInteger() > 0 || params.INFRA_WORKLOAD_INSTALL == true}
         }
@@ -419,7 +423,121 @@ pipeline {
             }
         }
     }
-    
+    stage('Run OVN Live Migration'){    
+        agent {
+          kubernetes {
+            cloud 'PSI OCP-C1 agents'
+            yaml """\
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                labels:
+                  label: ${JENKINS_AGENT_LABEL}
+              spec:
+                containers:
+                - name: "jnlp"
+                  image: "image-registry.openshift-image-registry.svc:5000/aosqe/cucushift:${JENKINS_AGENT_LABEL}-rhel8"
+                  resources:
+                    requests:
+                      memory: "8Gi"
+                      cpu: "2"
+                    limits:
+                      memory: "8Gi"
+                      cpu: "2"
+                  imagePullPolicy: Always
+                  workingDir: "/home/jenkins/ws"
+                  tty: true
+              """.stripIndent()
+          }
+        }
+        when {
+            expression { params.OVN_LIVE_MIGRATION == true}
+        }
+        steps {
+            deleteDir()
+            checkout([
+                $class: 'GitSCM',
+                branches: [[name: params.E2E_BENCHMARKING_REPO_BRANCH ]],
+                doGenerateSubmoduleConfigurations: false,
+                userRemoteConfigs: [[url: params.E2E_BENCHMARKING_REPO ]]
+            ])
+            copyArtifacts(
+                filter: '',
+                fingerprintArtifacts: true,
+                projectName: 'ocp-common/Flexy-install',
+                selector: specific(params.BUILD_NUMBER),
+                target: 'flexy-artifacts'
+            )
+            script {
+                buildinfo = readYaml file: "flexy-artifacts/BUILDINFO.yml"
+                currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}-${params.WORKLOAD}"
+                currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
+                buildinfo.params.each { env.setProperty(it.key, it.value) }
+            }
+            script {
+                if (params.EMAIL_ID_OVERRIDE != '') {
+                    env.EMAIL_ID_FOR_RESULTS_SHEET = params.EMAIL_ID_OVERRIDE
+                }
+                else {
+                    env.EMAIL_ID_FOR_RESULTS_SHEET = "${userId}@redhat.com"
+                }
+                withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
+                    file(credentialsId: 'sa-google-sheet', variable: 'GSHEET_KEY_LOCATION')]) {
+                    RETURNSTATUS = sh(returnStatus: true, script: '''
+                        # Get ENV VARS Supplied by the user to this job and store in .env_override
+                        echo "$ENV_VARS" > .env_override
+                        # Export those env vars so they could be used by CI Job
+                        set -a && source .env_override && set +a
+                        cp $GSHEET_KEY_LOCATION $WORKSPACE/.gsheet.json
+                        export GSHEET_KEY_LOCATION=$WORKSPACE/.gsheet.json
+                        export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
+                        export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
+                        mkdir -p ~/.kube
+                        cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+                        ls -ls ~/.kube/
+                        cd workloads/ovn-live-migration
+                        python3.9 --version
+                        python3.9 -m pip install virtualenv
+                        python3.9 -m virtualenv venv3
+                        source venv3/bin/activate
+                        python --version
+                        pip install pytimeparse futures
+                        if [[ $OVN_LIVE_MIGRATION == "true" ]]; then
+                            export JOB_ITERATIONS=$VARIABLE
+                        fi
+                        set -o pipefail
+                        pwd
+                        echo "workspace $WORKSPACE"
+                        ./run.sh |& tee "kube-burner.out"
+                        ls /tmp
+                        folder_name=$(ls -t -d /tmp/*/ | head -1)
+                        file_loc=$folder_name"*"
+                        cp $file_loc .
+                        ls
+                    ''')
+                    archiveArtifacts(
+                        artifacts: 'workloads/kube-burner/kube-burner.out',
+                        allowEmptyArchive: true,
+                        fingerprint: true
+                    )
+
+                    archiveArtifacts(
+                        artifacts: 'workloads/kube-burner/index_data.json',
+                        allowEmptyArchive: true,
+                        fingerprint: true
+                    )
+                    workloadInfo = readJSON file: "workloads/kube-burner/index_data.json"
+                    workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
+                    if (RETURNSTATUS.toInteger() == 0) {
+                        status = "PASS"
+                    }
+                    else { 
+                        currentBuild.result = "FAILURE"
+                    }
+                }
+            }
+        }
+    }    
     stage("Create google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when { 
