@@ -548,11 +548,13 @@ pipeline {
                         python --version
                         pip install pytimeparse futures
                         if [[ $OVN_LIVE_MIGRATION == "true" ]]; then
-                            export JOB_ITERATIONS=$VARIABLE
+                            export JOB_ITERATIONS=1
                         fi
                         set -o pipefail
                         pwd
                         echo "workspace $WORKSPACE"
+                        unset WORKLOAD
+                        WORKLOAD=ovn-live-migration
                         ./run.sh |& tee "kube-burner.out"
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
