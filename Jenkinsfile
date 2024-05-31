@@ -137,7 +137,7 @@ pipeline {
       )
       string(
           name: 'VARIABLE',
-          defaultValue: '1000', 
+          defaultValue: '10', 
           description: '''
           This variable configures parameter needed for each type of workload. By default 1000.<br>
           cluster-density: This will export JOB_ITERATIONS env variable, set to 9 * num_workers. This variable sets the number of iterations to perform (1 namespace per iteration).<br>
