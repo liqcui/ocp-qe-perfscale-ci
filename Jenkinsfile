@@ -179,7 +179,7 @@ pipeline {
       )
       string(
           name: 'JENKINS_AGENT_LABEL',
-          defaultValue: 'oc413',
+          defaultValue: 'oc416',
           description: '''
             scale-ci-static: for static agent that is specific to scale-ci, useful when the jenkins dynamic agent isn't stable<br>
             4.y: oc4y || mac-installer || rhel8-installer-4y <br/>
