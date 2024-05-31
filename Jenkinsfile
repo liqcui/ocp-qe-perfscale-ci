@@ -5,7 +5,6 @@ def userCause = currentBuild.rawBuild.getCause(Cause.UserIdCause)
 def upstreamCause = currentBuild.rawBuild.getCause(Cause.UpstreamCause)
 def upgrade_ci = null
 def build_string = "DEFAULT"
-def status = "PASS"
 
 userId = "ocp-perfscale-qe"
 if (userCause) {
