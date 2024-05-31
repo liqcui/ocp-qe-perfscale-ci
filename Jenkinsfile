@@ -44,9 +44,10 @@ pipeline {
         font-weight: bold;
         font-family: 'Orienta', sans-serif;"""
       )
+
       string(
         name: 'UPGRADE_VERSION',
-        description: 'This variable sets the version number you want to upgrade your OpenShift cluster to (can list multiple by separating with comma, no spaces).'
+        description: 'This variable sets the version number you want to upgrade your OpenShift cluster to (can list multiple by separating with comma, no spaces). Skip upgrade when it is empty'
       )
       booleanParam(
         name: 'EUS_UPGRADE',
@@ -242,7 +243,7 @@ pipeline {
     stage('Upgrade'){
       agent { label params['JENKINS_AGENT_LABEL'] }
       when {
-           expression { build_string != "DEFAULT" && status == "PASS" && UPGRADE_VERSION != ""  }
+           expression { build_string != "DEFAULT" && status == "PASS" && UPGRADE_VERSION != "" }
       }
       steps{
           script{
