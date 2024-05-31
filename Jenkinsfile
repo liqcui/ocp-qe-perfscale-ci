@@ -98,55 +98,6 @@ pipeline {
           name: 'RUN_KUBE_BURNER_OCP',
           defaultValue: false,
           description: 'Value to enable kube-burner OCP'
-      )        
-      booleanParam(
-          name: 'OVN_LIVE_MIGRATION',
-          defaultValue: false,
-          description: 'Value to enable OVN live migration'
-      )      
-      booleanParam(
-          name: 'WRITE_TO_FILE',
-          defaultValue: false,
-          description: 'Value to write to google sheet (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/write-scale-ci-results>write-scale-ci-results</a>)'
-      )
-      booleanParam(
-          name: 'WRITE_TO_ES',
-          defaultValue: false,
-          description: 'Value to write to elastic seach under metricName: jenkinsEnv'
-      )
-      booleanParam(
-          name: 'CLEANUP',
-          defaultValue: false,
-          description: 'Cleanup namespaces (and all sub-objects) created from workload (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/benchmark-cleaner/>benchmark-cleaner</a>)'
-      )
-      booleanParam(
-          name: 'CERBERUS_CHECK',
-          defaultValue: false,
-          description: 'Check cluster health status pass (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/cerberus/>cerberus</a>)'
-      )
-      booleanParam(
-            name: 'MUST_GATHER', 
-            defaultValue: true, 
-            description: 'This variable will run must-gather if any cerberus components fail'
-        )
-      string(
-          name: 'IMAGE_STREAM', 
-          defaultValue: 'openshift/must-gather', 
-          description: 'Base image stream of data to gather for the must-gather.'
-        )
-        string(
-          name: 'IMAGE', 
-          defaultValue: '', 
-          description: 'Optional image to help get must-gather information on non default areas. See <a href="https://docs.openshift.com/container-platform/4.12/support/gathering-cluster-data.html">docs</a> for more information and options.'
-        )
-      booleanParam(
-          name: 'CHURN',
-          defaultValue: false,
-          description: '''Run churn at end of original iterations. <a href=https://github.com/cloud-bulldozer/e2e-benchmarking/tree/master/workloads/kube-burner#churn>Churning</a> allows you to scale down and then up a percentage of JOB_ITERATIONS after the objects have been created <br>
-          Use the following variables in ENV_VARS to set specifics of churn. Otherwise the below will run as default <br>
-          CHURN_DURATION=10m  <br>
-          CHURN_PERCENT=10 <br>
-          CHURN_DELAY=60s'''
       )
       string(
           name: 'VARIABLE',
@@ -161,13 +112,66 @@ pipeline {
           Read <a href=https://github.com/openshift-qe/ocp-qe-perfscale-ci/tree/kube-burner/README.md>here</a> for details about each variable
           '''
       )
-      choice(
-          name: "PROFILE_TYPE",
-          choices: ["both","reporting","regular"],
+      booleanParam(
+          name: 'CHURN',
+          defaultValue: false,
+          description: '''Run churn at end of original iterations. <a href=https://github.com/cloud-bulldozer/e2e-benchmarking/tree/master/workloads/kube-burner#churn>Churning</a> allows you to scale down and then up a percentage of JOB_ITERATIONS after the objects have been created <br>
+          Use the following variables in ENV_VARS to set specifics of churn. Otherwise the below will run as default <br>
+          CHURN_DURATION=10m  <br>
+          CHURN_PERCENT=10 <br>
+          CHURN_DELAY=60s'''
+      )      
+      separator(
+        name: "OVN Live Migration Options",
+        sectionHeader: "OVN Live Migration Options",
+        sectionHeaderStyle: """
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'Orienta', sans-serif;"""
+      )                     
+      booleanParam(
+          name: 'OVN_LIVE_MIGRATION',
+          defaultValue: false,
+          description: 'Value to enable OVN live migration'
+      )
+      separator(
+        name: "Scale and Infra Options",
+        sectionHeader: "Scale and Infra Options",
+        sectionHeaderStyle: """
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'Orienta', sans-serif;"""
+      )     
+      string(
+          name: 'SCALE_UP',
+          defaultValue: '0',
+          description: 'If value is set to anything greater than 0, cluster will be scaled up before executing the workload.'
+      )      
+      booleanParam(
+          name: 'INFRA_WORKLOAD_INSTALL',
+          defaultValue: false,
           description: '''
-          Select the type of metric collection you want, values are 'both', 'reporting', and 'regular'
-          See <a href=https://github.com/kube-burner/kube-burner-ocp?tab=readme-ov-file#metrics-profile-type>profile type</a> for more details about profiles
+          Install workload and infrastructure nodes even if less than 50 nodes.<br>
+          Checking this parameter box is valid only when SCALE_UP is greater than 0.
           '''
+      )     
+      separator(
+        name: "Save Result Options",
+        sectionHeader: "Save Result Options",
+        sectionHeaderStyle: """
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'Orienta', sans-serif;"""
+      )      
+      booleanParam(
+          name: 'WRITE_TO_FILE',
+          defaultValue: false,
+          description: 'Value to write to google sheet (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/write-scale-ci-results>write-scale-ci-results</a>)'
+      )
+      booleanParam(
+          name: 'WRITE_TO_ES',
+          defaultValue: false,
+          description: 'Value to write to elastic seach under metricName: jenkinsEnv'
       )
       string(
           name: "COMPARISON_CONFIG",
@@ -178,11 +182,44 @@ pipeline {
           name: "TOLERANCY_RULES",
           defaultValue: "pod-latency-tolerancy-rules.yaml master-tolerancy-ocp.yaml worker-agg-tolerancy-ocp.yaml etcd-tolerancy-ocp.yaml crio-tolerancy-ocp.yaml kubelet-tolerancy-ocp.yaml",
           description: '''JSON config files of what data to compare with and put output into a Google Sheet'''
-        )
+        )      
       booleanParam(
           name: 'GEN_CSV',
           defaultValue: true,
           description: 'Boolean to create a google sheet with comparison data'
+      )      
+      booleanParam(
+          name: 'CLEANUP',
+          defaultValue: false,
+          description: 'Cleanup namespaces (and all sub-objects) created from workload (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/benchmark-cleaner/>benchmark-cleaner</a>)'
+      )
+      booleanParam(
+            name: 'MUST_GATHER', 
+            defaultValue: true, 
+            description: 'This variable will run must-gather if any cerberus components fail'
+        )
+      string(
+          name: 'IMAGE_STREAM', 
+          defaultValue: 'openshift/must-gather', 
+          description: 'Base image stream of data to gather for the must-gather.'
+        )
+      string(
+          name: 'IMAGE', 
+          defaultValue: '', 
+          description: 'Optional image to help get must-gather information on non default areas. See <a href="https://docs.openshift.com/container-platform/4.12/support/gathering-cluster-data.html">docs</a> for more information and options.'
+        )
+      booleanParam(
+          name: 'CERBERUS_CHECK',
+          defaultValue: false,
+          description: 'Check cluster health status pass (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/cerberus/>cerberus</a>)'
+      )        
+      choice(
+          name: "PROFILE_TYPE",
+          choices: ["both","reporting","regular"],
+          description: '''
+          Select the type of metric collection you want, values are 'both', 'reporting', and 'regular'
+          See <a href=https://github.com/kube-burner/kube-burner-ocp?tab=readme-ov-file#metrics-profile-type>profile type</a> for more details about profiles
+          '''
       )
       string(
           name: 'EMAIL_ID_OVERRIDE',
@@ -221,19 +258,6 @@ pipeline {
           defaultValue: false,
           description: "Check this box to send a Slack notification to #ocp-qe-scale-ci-results upon the job's completion"
       )
-      booleanParam(
-          name: 'INFRA_WORKLOAD_INSTALL',
-          defaultValue: false,
-          description: '''
-          Install workload and infrastructure nodes even if less than 50 nodes.<br>
-          Checking this parameter box is valid only when SCALE_UP is greater than 0.
-          '''
-      )
-      string(
-          name: 'SCALE_UP',
-          defaultValue: '0',
-          description: 'If value is set to anything greater than 0, cluster will be scaled up before executing the workload.'
-      )
       string(
           name: 'SCALE_DOWN',
           defaultValue: '0',
@@ -244,7 +268,7 @@ pipeline {
       )
       string(
           name: 'E2E_BENCHMARKING_REPO',
-          defaultValue: 'https://github.com/cloud-bulldozer/e2e-benchmarking',
+          defaultValue: 'https://github.com/liqcui/e2e-benchmarking',
           description: 'You can change this to point to your fork if needed.'
       )
       string(
