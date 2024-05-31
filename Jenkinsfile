@@ -146,7 +146,15 @@ pipeline {
           name: 'SCALE_UP',
           defaultValue: '0',
           description: 'If value is set to anything greater than 0, cluster will be scaled up before executing the workload.'
-      )      
+      )
+      string(
+          name: 'SCALE_DOWN',
+          defaultValue: '0',
+          description: '''
+          If value is set to anything greater than 0, cluster will be scaled down after the execution of the workload is complete,<br>
+          if the build fails, scale down may not happen, user should review and decide if cluster is ready for scale down or re-run the job on same cluster.
+          '''
+      )           
       booleanParam(
           name: 'INFRA_WORKLOAD_INSTALL',
           defaultValue: false,
@@ -258,14 +266,7 @@ pipeline {
           defaultValue: false,
           description: "Check this box to send a Slack notification to #ocp-qe-scale-ci-results upon the job's completion"
       )
-      string(
-          name: 'SCALE_DOWN',
-          defaultValue: '0',
-          description: '''
-          If value is set to anything greater than 0, cluster will be scaled down after the execution of the workload is complete,<br>
-          if the build fails, scale down may not happen, user should review and decide if cluster is ready for scale down or re-run the job on same cluster.
-          '''
-      )
+
       string(
           name: 'E2E_BENCHMARKING_REPO',
           defaultValue: 'https://github.com/liqcui/e2e-benchmarking',
