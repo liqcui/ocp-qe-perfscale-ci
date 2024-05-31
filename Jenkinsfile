@@ -154,7 +154,7 @@ pipeline {
           If value is set to anything greater than 0, cluster will be scaled down after the execution of the workload is complete,<br>
           if the build fails, scale down may not happen, user should review and decide if cluster is ready for scale down or re-run the job on same cluster.
           '''
-      )           
+      )
       booleanParam(
           name: 'INFRA_WORKLOAD_INSTALL',
           defaultValue: false,
@@ -163,7 +163,6 @@ pipeline {
           Checking this parameter box is valid only when SCALE_UP is greater than 0.
           '''
       )
-
       separator(
         name: "Save Result Options",
         sectionHeader: "Save Result Options",
@@ -222,7 +221,7 @@ pipeline {
           defaultValue: false,
           description: 'Check cluster health status pass (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/cerberus/>cerberus</a>)'
       )        
-       choice(
+      choice(
           name: "PROFILE_TYPE",
           choices: ["both","reporting","regular"],
           description: '''
@@ -230,7 +229,7 @@ pipeline {
           See <a href=https://github.com/kube-burner/kube-burner-ocp?tab=readme-ov-file#metrics-profile-type>profile type</a> for more details about profiles
           '''
       )
-       string(
+      string(
           name: 'EMAIL_ID_OVERRIDE',
           defaultValue: '',
           description: '''
@@ -238,7 +237,7 @@ pipeline {
             By default shares with email of person who ran the job
           '''
       )
-       string(
+      string(
           name: 'JENKINS_AGENT_LABEL',
           defaultValue: 'oc416',
           description: '''
