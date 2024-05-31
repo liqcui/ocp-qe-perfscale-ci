@@ -87,6 +87,11 @@ pipeline {
           description: 'Type of kube-burner job to run'
       )
       booleanParam(
+          name: 'RUN_KUBE_BURNER_OCP',
+          defaultValue: false,
+          description: 'Value to enable kube-burner OCP'
+      )        
+      booleanParam(
           name: 'OVN_LIVE_MIGRATION',
           defaultValue: false,
           description: 'Value to enable OVN live migration'
@@ -320,6 +325,9 @@ pipeline {
               """.stripIndent()
           }
         }
+        when {
+           expression { params.RUN_KUBE_BURNER_OCP == true }
+        }        
         steps {
             deleteDir()
             checkout([
@@ -497,6 +505,8 @@ pipeline {
                         mkdir -p ~/.kube
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         ls -ls ~/.kube/
+                        pwd
+                        ls -l
                         cd workloads/ovn-live-migration
                         python3.9 --version
                         python3.9 -m pip install virtualenv
