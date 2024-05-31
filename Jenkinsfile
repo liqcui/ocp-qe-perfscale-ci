@@ -38,6 +38,11 @@ def status = "FAIL"
 pipeline {
   agent none
   parameters {
+      string(
+          name: 'BUILD_NUMBER',
+          defaultValue: '',
+          description: 'Build number of job that has installed the cluster.'
+      )      
       separator(
         name: "UPGRADE_INFO",
         sectionHeader: "Upgrade Options",
@@ -75,12 +80,15 @@ pipeline {
         name: 'MAX_UNAVAILABLE',
         defaultValue: "1",
         description: 'This variable will set the max number of unavailable nodes during the upgrade'
-      )    
-      string(
-          name: 'BUILD_NUMBER',
-          defaultValue: '',
-          description: 'Build number of job that has installed the cluster.'
-      )   
+      )
+      separator(
+        name: "Kube Burner OCP Options",
+        sectionHeader: "Kube Burner OCP Options",
+        sectionHeaderStyle: """
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'Orienta', sans-serif;"""
+      )      
       choice(
           name: 'WORKLOAD',
           choices: ["cluster-density-v2", "node-density", "node-density-heavy","node-density-cni","pvc-density","networkpolicy-matchexpressions","networkpolicy-matchlabels","networkpolicy-multitenant","crd-scale"],
