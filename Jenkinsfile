@@ -36,11 +36,50 @@ def status = "FAIL"
 pipeline {
   agent none
   parameters {
+      separator(
+        name: "UPGRADE_INFO",
+        sectionHeader: "Upgrade Options",
+        sectionHeaderStyle: """
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'Orienta', sans-serif;"""
+      )
+      string(
+        name: 'UPGRADE_VERSION',
+        description: 'This variable sets the version number you want to upgrade your OpenShift cluster to (can list multiple by separating with comma, no spaces).'
+      )
+      booleanParam(
+        name: 'EUS_UPGRADE',
+        defaultValue: false,
+        description: '''This variable will perform an EUS type upgrade <br>
+        See "https://docs.google.com/document/d/1396VAUFLmhj8ePt9NfJl0mfHD7pUT7ii30AO7jhDp0g/edit#heading=h.bv3v69eaalsw" for how to run'''
+      )
+      choice(
+        choices: ['fast', 'eus', 'candidate', 'stable'],
+        name: 'EUS_CHANNEL',
+        description: 'EUS Channel type, will be ignored if EUS_UPGRADE is not set to true'
+      )
+
+      booleanParam(
+        name: 'ENABLE_FORCE',
+        defaultValue: true,
+        description: 'This variable will force the upgrade or not'
+      )
+      booleanParam(
+        name: 'SCALE',
+        defaultValue: false,
+        description: 'This variable will scale the cluster up one node at the end up the upgrade'
+      )
+      string(
+        name: 'MAX_UNAVAILABLE',
+        defaultValue: "1",
+        description: 'This variable will set the max number of unavailable nodes during the upgrade'
+      )    
       string(
           name: 'BUILD_NUMBER',
           defaultValue: '',
           description: 'Build number of job that has installed the cluster.'
-      )
+      )   
       choice(
           name: 'WORKLOAD',
           choices: ["cluster-density-v2", "node-density", "node-density-heavy","node-density-cni","pvc-density","networkpolicy-matchexpressions","networkpolicy-matchlabels","networkpolicy-multitenant","crd-scale"],
@@ -195,7 +234,43 @@ pipeline {
           description: 'You can change this to point to a branch on your fork if needed.'
       )
   }
-  stages {  
+  stages {
+    stage('Upgrade'){
+      agent { label params['JENKINS_AGENT_LABEL'] }
+      when {
+           expression { build_string != "DEFAULT" && status == "PASS" && UPGRADE_VERSION != ""  }
+      }
+      steps{
+          script{
+               currentBuild.description += """
+                   <b>Upgrade to: </b> ${UPGRADE_VERSION} <br/>
+               """
+               def set_arch_type = "x86_64"
+               if (params.ARCH_TYPE != "") {
+                     set_arch_type = params.ARCH_TYPE
+                }
+               else if (params.CI_PROFILE != "" && params.CI_PROFILE.contains('ARM')) {
+                     set_arch_type = "aarch64"
+                }
+
+               upgrade_ci = build job: "scale-ci/e2e-benchmarking-multibranch-pipeline/upgrade", propagate: false,parameters:[
+                   string(name: "BUILD_NUMBER", value: build_string),string(name: "MAX_UNAVAILABLE", value: MAX_UNAVAILABLE),
+                   string(name: "JENKINS_AGENT_LABEL", value: JENKINS_AGENT_LABEL),string(name: "UPGRADE_VERSION", value: UPGRADE_VERSION),
+                   string(name: "ARCH_TYPE", value: set_arch_type),
+                   booleanParam(name: "EUS_UPGRADE", value: EUS_UPGRADE),string(name: "EUS_CHANNEL", value: EUS_CHANNEL),
+                   booleanParam(name: "WRITE_TO_FILE", value: WRITE_TO_FILE),booleanParam(name: "ENABLE_FORCE", value: ENABLE_FORCE),
+                   booleanParam(name: "SCALE", value: SCALE),text(name: "ENV_VARS", value: ENV_VARS)
+               ]
+               currentBuild.description += """
+                   <b>Upgrade Job: </b> <a href="${upgrade_ci.absoluteUrl}"> ${upgrade_ci.getNumber()} </a> <br/>
+               """
+               if( upgrade_ci.result.toString() != "SUCCESS") {
+                  status = "Upgrade Failed"
+                  currentBuild.result = "FAILURE"
+               }
+            }
+          }
+    }
     stage('Scale up cluster') {
       agent { label params['JENKINS_AGENT_LABEL'] }
         when {
@@ -344,6 +419,7 @@ pipeline {
             }
         }
     }
+    
     stage("Create google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when { 
@@ -364,7 +440,7 @@ pipeline {
             }
         }
     }
-     stage("Compare results with baseline uuid and print to google sheet") {
+    stage("Compare results with baseline uuid and print to google sheet") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when { 
             expression { params.GEN_CSV == true }
