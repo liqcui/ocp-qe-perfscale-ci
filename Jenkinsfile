@@ -162,7 +162,8 @@ pipeline {
           Install workload and infrastructure nodes even if less than 50 nodes.<br>
           Checking this parameter box is valid only when SCALE_UP is greater than 0.
           '''
-      )     
+      )
+
       separator(
         name: "Save Result Options",
         sectionHeader: "Save Result Options",
@@ -216,12 +217,12 @@ pipeline {
           defaultValue: '', 
           description: 'Optional image to help get must-gather information on non default areas. See <a href="https://docs.openshift.com/container-platform/4.12/support/gathering-cluster-data.html">docs</a> for more information and options.'
         )
-      booleanParam(
+       booleanParam(
           name: 'CERBERUS_CHECK',
           defaultValue: false,
           description: 'Check cluster health status pass (will run <a href=https://mastern-jenkins-csb-openshift-qe.apps.ocp-c1.prod.psi.redhat.com/job/scale-ci/job/e2e-benchmarking-multibranch-pipeline/job/cerberus/>cerberus</a>)'
       )        
-      choice(
+       choice(
           name: "PROFILE_TYPE",
           choices: ["both","reporting","regular"],
           description: '''
@@ -229,7 +230,7 @@ pipeline {
           See <a href=https://github.com/kube-burner/kube-burner-ocp?tab=readme-ov-file#metrics-profile-type>profile type</a> for more details about profiles
           '''
       )
-      string(
+       string(
           name: 'EMAIL_ID_OVERRIDE',
           defaultValue: '',
           description: '''
@@ -237,7 +238,7 @@ pipeline {
             By default shares with email of person who ran the job
           '''
       )
-      string(
+       string(
           name: 'JENKINS_AGENT_LABEL',
           defaultValue: 'oc416',
           description: '''
@@ -266,7 +267,6 @@ pipeline {
           defaultValue: false,
           description: "Check this box to send a Slack notification to #ocp-qe-scale-ci-results upon the job's completion"
       )
-
       string(
           name: 'E2E_BENCHMARKING_REPO',
           defaultValue: 'https://github.com/liqcui/e2e-benchmarking',
@@ -554,7 +554,7 @@ pipeline {
                         pwd
                         echo "workspace $WORKSPACE"
                         unset WORKLOAD
-                        WORKLOAD=ovn-live-migration
+                        export WORKLOAD=ovn-live-migration
                         ./run.sh |& tee "kube-burner.out"
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
