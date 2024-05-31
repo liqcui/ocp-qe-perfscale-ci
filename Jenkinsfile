@@ -249,7 +249,7 @@ pipeline {
       )
       string(
           name: 'E2E_BENCHMARKING_REPO_BRANCH',
-          defaultValue: 'master',
+          defaultValue: 'live-migration',
           description: 'You can change this to point to a branch on your fork if needed.'
       )
   }
