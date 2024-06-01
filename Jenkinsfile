@@ -53,7 +53,7 @@ pipeline {
       )
       booleanParam(
         name: 'ENABLE_UPGRADE',
-        defaultValue: true,
+        defaultValue: false,
         description: 'This variable will enable the upgrade or not'
       )         
       string(
