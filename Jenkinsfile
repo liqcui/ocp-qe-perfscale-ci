@@ -216,6 +216,27 @@ pipeline {
           defaultValue: '', 
           description: 'Optional image to help get must-gather information on non default areas. See <a href="https://docs.openshift.com/container-platform/4.12/support/gathering-cluster-data.html">docs</a> for more information and options.'
         )
+      booleanParam(
+          name: "SEND_SLACK",
+          defaultValue: false,
+          description: "Check this box to send a Slack notification to #ocp-qe-scale-ci-results upon the job's completion"
+      )
+      string(
+          name: 'EMAIL_ID_OVERRIDE',
+          defaultValue: '',
+          description: '''
+            Email to share Google Sheet results with<br/>
+            By default shares with email of person who ran the job
+          '''
+      )             
+      separator(
+        name: "Cluster Health Check Options",
+        sectionHeader: "Cluster Health Check Options",
+        sectionHeaderStyle: """
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'Orienta', sans-serif;"""
+      )           
        booleanParam(
           name: 'CERBERUS_CHECK',
           defaultValue: false,
@@ -230,14 +251,6 @@ pipeline {
           '''
       )
       string(
-          name: 'EMAIL_ID_OVERRIDE',
-          defaultValue: '',
-          description: '''
-            Email to share Google Sheet results with<br/>
-            By default shares with email of person who ran the job
-          '''
-      )
-      string(
           name: 'JENKINS_AGENT_LABEL',
           defaultValue: 'oc416',
           description: '''
@@ -249,6 +262,14 @@ pipeline {
             3.4~3.7: ansible-2.4-extra || ansible-2.3 <br/>
             '''
       )
+      separator(
+        name: "Customize ENV Options",
+        sectionHeader: "Customize ENV Options",
+        sectionHeaderStyle: """
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'Orienta', sans-serif;"""
+      )       
       text(
           name: 'ENV_VARS',
           defaultValue: '',
@@ -261,11 +282,14 @@ pipeline {
           SOMEVARn='envn-test'<br>
           '''
       )
-      booleanParam(
-          name: "SEND_SLACK",
-          defaultValue: false,
-          description: "Check this box to send a Slack notification to #ocp-qe-scale-ci-results upon the job's completion"
-      )
+      separator(
+        name: "E2E Code Options",
+        sectionHeader: "E2E Code Options",
+        sectionHeaderStyle: """
+        font-size: 18px;
+        font-weight: bold;
+        font-family: 'Orienta', sans-serif;"""
+      )         
       string(
           name: 'E2E_BENCHMARKING_REPO',
           defaultValue: 'https://github.com/liqcui/e2e-benchmarking',
