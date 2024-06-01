@@ -60,6 +60,30 @@ pipeline {
         name: 'UPGRADE_VERSION',
         description: 'This variable sets the version number you want to upgrade your OpenShift cluster to (can list multiple by separating with comma, no spaces). Skip upgrade when it is empty'
       )
+      choice(
+        choices: ["",'x86_64','aarch64', 's390x', 'ppc64le', 'multi', 'multi-aarch64','multi-x86_64','multi-ppc64le', 'multi-s390x'],
+        name: 'ARCH_TYPE',
+        description: '''Type of architecture installation for quay image url; <b>
+        set to x86_64 by default or if profile contains ARM will set to aarch64
+        If this is not blank will use value you set here'''
+      )
+
+      separator(
+        name: "BUILD_FLEXY_FROM_PROFILE",
+        sectionHeader: "Build Flexy From Profile",
+        sectionHeaderStyle: """
+          font-size: 18px;
+          font-weight: bold;
+          font-family: 'Orienta', sans-serif;
+        """
+      )
+      string(
+        name: 'CI_PROFILE',
+        defaultValue: '',
+        description: """Name of ci profile to build for the cluster you want to build <br>
+          You'll give the name of the file (under the specific version) without `.install.yaml`
+        """
+      )      
       booleanParam(
         name: 'EUS_UPGRADE',
         defaultValue: false,
@@ -326,7 +350,7 @@ pipeline {
                 }
 
                upgrade_ci = build job: "scale-ci/e2e-benchmarking-multibranch-pipeline/upgrade", propagate: false,parameters:[
-                   string(name: "BUILD_NUMBER", value: build_string),string(name: "MAX_UNAVAILABLE", value: MAX_UNAVAILABLE),
+                   string(name: "BUILD_NUMBER", value: BUILD_NUMBER),string(name: "MAX_UNAVAILABLE", value: MAX_UNAVAILABLE),
                    string(name: "JENKINS_AGENT_LABEL", value: JENKINS_AGENT_LABEL),string(name: "UPGRADE_VERSION", value: UPGRADE_VERSION),
                    string(name: "ARCH_TYPE", value: set_arch_type),
                    booleanParam(name: "EUS_UPGRADE", value: EUS_UPGRADE),string(name: "EUS_CHANNEL", value: EUS_CHANNEL),
