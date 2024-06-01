@@ -51,6 +51,11 @@ pipeline {
         font-weight: bold;
         font-family: 'Orienta', sans-serif;"""
       )
+      booleanParam(
+        name: 'ENABLE_UPGRADE',
+        defaultValue: true,
+        description: 'This variable will enable the upgrade or not'
+      )         
       string(
         name: 'UPGRADE_VERSION',
         description: 'This variable sets the version number you want to upgrade your OpenShift cluster to (can list multiple by separating with comma, no spaces). Skip upgrade when it is empty'
@@ -305,7 +310,7 @@ pipeline {
     stage('Upgrade'){
       agent { label params['JENKINS_AGENT_LABEL'] }
       when {
-           expression { build_string != "DEFAULT" && status == "PASS" && UPGRADE_VERSION != "" }
+           expression { UPGRADE_VERSION != "" && params.ENABLE_UPGRADE == true }
       }
       steps{
           script{
