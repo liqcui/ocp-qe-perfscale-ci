@@ -163,6 +163,11 @@ pipeline {
           defaultValue: false,
           description: 'Value to enable OVN live migration'
       )
+      booleanParam(
+          name: 'ONLY_POST_CHECKING',
+          defaultValue: false,
+          description: 'Value to enable only post checking for OVN live migration'
+      )      
       separator(
         name: "Scale and Infra Options",
         sectionHeader: "Scale and Infra Options",
@@ -607,6 +612,7 @@ pipeline {
                         echo "workspace $WORKSPACE"
                         unset WORKLOAD
                         export WORKLOAD=ovn-live-migration
+                        export ONLY_POST_CHECKING
                         ./run.sh |& tee "kube-burner.out"
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
