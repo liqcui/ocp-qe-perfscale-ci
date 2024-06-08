@@ -483,7 +483,7 @@ pipeline {
                         elif [[ $WORKLOAD == *"node-density"* ]]; then
                             export EXTRA_FLAGS="$EXTRA_FLAGS --pods-per-node=$VARIABLE"
                         fi
-                        export GC=${CLEANUP}
+                        export CLEANUP_WHEN_FINISH=${CLEANUP}
 
                         export EXTRA_FLAGS+=" --gc-metrics=true --profile-type=$PROFILE_TYPE"
                         ./run.sh |& tee "kube-burner-ocp.out"
