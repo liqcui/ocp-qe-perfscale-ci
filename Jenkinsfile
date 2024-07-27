@@ -336,6 +336,22 @@ pipeline {
       )
   }
   stages {
+    stage('Scale up cluster') {
+        agent { label params['JENKINS_AGENT_LABEL'] }
+        when {
+            expression { params.SCALE_UP.toInteger() > 0 || params.INFRA_WORKLOAD_INSTALL == true}
+        }
+        steps {
+            script {
+                build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling/',
+                    parameters: [
+                        string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), text(name: "ENV_VARS", value: ENV_VARS),
+                        string(name: 'WORKER_COUNT', value: SCALE_UP), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL),
+                        booleanParam(name: 'INFRA_WORKLOAD_INSTALL', value: INFRA_WORKLOAD_INSTALL)
+                    ]
+            }
+        }
+    }            
     stage('Upgrade'){
       agent { label params['JENKINS_AGENT_LABEL'] }
       when {
@@ -372,22 +388,6 @@ pipeline {
             }
           }
     }
-    stage('Scale up cluster') {
-        agent { label params['JENKINS_AGENT_LABEL'] }
-        when {
-            expression { params.SCALE_UP.toInteger() > 0 || params.INFRA_WORKLOAD_INSTALL == true}
-        }
-        steps {
-            script {
-                build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/cluster-workers-scaling/',
-                    parameters: [
-                        string(name: 'BUILD_NUMBER', value: BUILD_NUMBER), text(name: "ENV_VARS", value: ENV_VARS),
-                        string(name: 'WORKER_COUNT', value: SCALE_UP), string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL),
-                        booleanParam(name: 'INFRA_WORKLOAD_INSTALL', value: INFRA_WORKLOAD_INSTALL)
-                    ]
-            }
-        }
-    }        
     stage('Run Kube-Burner Test'){    
         agent {
           kubernetes {
