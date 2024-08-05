@@ -335,7 +335,9 @@ pipeline {
           description: 'You can change this to point to a branch on your fork if needed.'
       )
   }
-    stage('Upgrade'){
+
+  stages {
+     stage('Upgrade'){
       agent { label params['JENKINS_AGENT_LABEL'] }
       when {
            expression { UPGRADE_VERSION != "" && params.ENABLE_UPGRADE == true }
@@ -370,8 +372,7 @@ pipeline {
                }
             }
           }
-    }  
-  stages {
+    }    
     stage('Scale up cluster') {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when {
