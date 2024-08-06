@@ -664,26 +664,6 @@ pipeline {
             }
         }
     }
-    stage("Compare results with baseline uuid and print to google sheet") {
-        agent { label params['JENKINS_AGENT_LABEL'] }
-        when { 
-            expression { params.GEN_CSV == true }
-        }
-        steps {
-            script {
-                
-                compare_job = build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/benchmark-comparison',
-                    parameters: [
-                        string(name: 'BUILD_NUMBER', value: BUILD_NUMBER),text(name: "ENV_VARS", value: ENV_VARS),
-                        string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL),booleanParam(name: "GEN_CSV", value: GEN_CSV),
-                        string(name: "WORKLOAD", value: WORKLOAD), string(name: "UUID", value: env.UUID),
-                        string(name: "COMPARISON_CONFIG_PARAM", value: COMPARISON_CONFIG),string(name: "TOLERANCY_RULES_PARAM", value: TOLERANCY_RULES),
-                        string(name: "EMAIL_ID_OVERRIDE", value: EMAIL_ID_OVERRIDE)
-                    ],
-                    propagate: false
-            }
-        }
-    }
     stage("Check cluster health") {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when {
