@@ -352,7 +352,7 @@ pipeline {
                     ]
             }
         }
-    }    
+    } 
     stage('Run Kube-Burner Test'){    
         agent {
           kubernetes {
@@ -523,7 +523,7 @@ pipeline {
                }
             }
           }
-    }    
+    }
     stage('Run OVN Live Migration'){    
         agent {
           kubernetes {
