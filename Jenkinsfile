@@ -337,6 +337,42 @@ pipeline {
   }
 
   stages {
+     stage('Upgrade'){
+      agent { label params['JENKINS_AGENT_LABEL'] }
+      when {
+           expression { UPGRADE_VERSION != "" && params.ENABLE_UPGRADE == true }
+      }
+      steps{
+          script{
+               currentBuild.description += """
+                   <b>Upgrade to: </b> ${UPGRADE_VERSION} <br/>
+               """
+               def set_arch_type = "x86_64"
+               if (params.ARCH_TYPE != "") {
+                     set_arch_type = params.ARCH_TYPE
+                }
+               else if (params.CI_PROFILE != "" && params.CI_PROFILE.contains('ARM')) {
+                     set_arch_type = "aarch64"
+                }
+
+               upgrade_ci = build job: "scale-ci/e2e-benchmarking-multibranch-pipeline/upgrade", propagate: false,parameters:[
+                   string(name: "BUILD_NUMBER", value: BUILD_NUMBER),string(name: "MAX_UNAVAILABLE", value: MAX_UNAVAILABLE),
+                   string(name: "JENKINS_AGENT_LABEL", value: JENKINS_AGENT_LABEL),string(name: "UPGRADE_VERSION", value: UPGRADE_VERSION),
+                   string(name: "ARCH_TYPE", value: set_arch_type),
+                   booleanParam(name: "EUS_UPGRADE", value: EUS_UPGRADE),string(name: "EUS_CHANNEL", value: EUS_CHANNEL),
+                   booleanParam(name: "WRITE_TO_FILE", value: WRITE_TO_FILE),booleanParam(name: "ENABLE_FORCE", value: ENABLE_FORCE),
+                   booleanParam(name: "SCALE", value: SCALE),text(name: "ENV_VARS", value: ENV_VARS)
+               ]
+               currentBuild.description += """
+                   <b>Upgrade Job: </b> <a href="${upgrade_ci.absoluteUrl}"> ${upgrade_ci.getNumber()} </a> <br/>
+               """
+               if( upgrade_ci.result.toString() != "SUCCESS") {
+                  status = "Upgrade Failed"
+                  currentBuild.result = "FAILURE"
+               }
+            }
+          }
+    }   
     stage('Scale up cluster') {
         agent { label params['JENKINS_AGENT_LABEL'] }
         when {
@@ -488,42 +524,7 @@ pipeline {
             }
         }
     }
-    stage('Upgrade'){
-      agent { label params['JENKINS_AGENT_LABEL'] }
-      when {
-           expression { UPGRADE_VERSION != "" && params.ENABLE_UPGRADE == true }
-      }
-      steps{
-          script{
-               currentBuild.description += """
-                   <b>Upgrade to: </b> ${UPGRADE_VERSION} <br/>
-               """
-               def set_arch_type = "x86_64"
-               if (params.ARCH_TYPE != "") {
-                     set_arch_type = params.ARCH_TYPE
-                }
-               else if (params.CI_PROFILE != "" && params.CI_PROFILE.contains('ARM')) {
-                     set_arch_type = "aarch64"
-                }
 
-               upgrade_ci = build job: "scale-ci/e2e-benchmarking-multibranch-pipeline/upgrade", propagate: false,parameters:[
-                   string(name: "BUILD_NUMBER", value: BUILD_NUMBER),string(name: "MAX_UNAVAILABLE", value: MAX_UNAVAILABLE),
-                   string(name: "JENKINS_AGENT_LABEL", value: JENKINS_AGENT_LABEL),string(name: "UPGRADE_VERSION", value: UPGRADE_VERSION),
-                   string(name: "ARCH_TYPE", value: set_arch_type),
-                   booleanParam(name: "EUS_UPGRADE", value: EUS_UPGRADE),string(name: "EUS_CHANNEL", value: EUS_CHANNEL),
-                   booleanParam(name: "WRITE_TO_FILE", value: WRITE_TO_FILE),booleanParam(name: "ENABLE_FORCE", value: ENABLE_FORCE),
-                   booleanParam(name: "SCALE", value: SCALE),text(name: "ENV_VARS", value: ENV_VARS)
-               ]
-               currentBuild.description += """
-                   <b>Upgrade Job: </b> <a href="${upgrade_ci.absoluteUrl}"> ${upgrade_ci.getNumber()} </a> <br/>
-               """
-               if( upgrade_ci.result.toString() != "SUCCESS") {
-                  status = "Upgrade Failed"
-                  currentBuild.result = "FAILURE"
-               }
-            }
-          }
-    }
     stage('Run OVN Live Migration'){    
         agent {
           kubernetes {
