@@ -53,9 +53,9 @@ pipeline {
       )
       booleanParam(
         name: 'ENABLE_UPGRADE',
-        defaultValue: false,
+        defaultValue: true,
         description: 'This variable will enable the upgrade or not'
-      )         
+      )  
       string(
         name: 'UPGRADE_VERSION',
         description: 'This variable sets the version number you want to upgrade your OpenShift cluster to (can list multiple by separating with comma, no spaces). Skip upgrade when it is empty'
