@@ -295,7 +295,7 @@ pipeline {
                         source venv3/bin/activate
                         python3.9 -m pip install pytimeparse futures
 			pip3 install elasticsearch==6.8.2
-                        pip3 install numpy<2 
+                        pip3 install "numpy<2"
                         pip3 install requests
                         pip3 install urllib3==2.0.2
                         python --version
