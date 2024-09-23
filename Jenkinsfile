@@ -605,11 +605,9 @@ pipeline {
  
                         cd workloads/kube-burner-ocp-wrapper
                         pip install jq
-
-
-                        export EXTRA_FLAGS+=" --gc-metrics=true --profile-type=$PROFILE_TYPE"
+                        START_TIME=`date +"%Y%m%d %H%M%S"`
                         WORKLOAD=index
-                        ./run.sh |& tee "kube-burner-ocp.out"
+                        START_TIME=${START_TIME} END_TIME=${START_TIME} ./run.sh |& tee "kube-burner-ocp.out"
                         ''')
                         sh(returnStatus: true, script: '''
                         ls /tmp
