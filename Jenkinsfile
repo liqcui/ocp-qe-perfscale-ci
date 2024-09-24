@@ -704,24 +704,6 @@ pipeline {
             }
         }
     }
-    stage("Write es results") {
-      agent { label params['JENKINS_AGENT_LABEL'] }
-      when {
-          expression { params.WRITE_TO_ES == true }
-      }
-        steps {
-          script {
-                build job: 'scale-ci/e2e-benchmarking-multibranch-pipeline/post-results-to-es',
-                  parameters: [
-                      string(name: 'BUILD_NUMBER', value: BUILD_NUMBER),text(name: "ENV_VARS", value: ENV_VARS),
-                      string(name: "JENKINS_JOB_NUMBER", value: JENKINS_JOB_NUMBER), string(name: "JENKINS_JOB_PATH", value: JOB_NAME),
-                      string(name: 'JENKINS_AGENT_LABEL', value: JENKINS_AGENT_LABEL), string(name: "CI_STATUS", value: "${status}"),
-                      string(name: "WORKLOAD", value: WORKLOAD)
-                  ],
-                  propagate: false
-            }
-        }
-    }
     stage("Scale down workers") {
       agent { label params['JENKINS_AGENT_LABEL'] }
       when {
