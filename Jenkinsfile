@@ -604,6 +604,8 @@ pipeline {
                         set -o pipefail
  
                         cd workloads/kube-burner-ocp-wrapper
+                        cp metrics-profiles/metrics.yml /tmp/
+                        ls /tmp/
                         pip install jq
                         START_TIME=`date +"%s"`
                         WORKLOAD=index
