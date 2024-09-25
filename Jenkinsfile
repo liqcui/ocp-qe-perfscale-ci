@@ -627,17 +627,17 @@ pipeline {
                         ls
                     ''')
                     archiveArtifacts(
-                        artifacts: 'workloads/kube-burner/kube-burner.out',
+                        artifacts: 'workloads/ovn-live-migration/kube-burner.out',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
                     archiveArtifacts(
-                        artifacts: 'workloads/kube-burner/index_data.json',
+                        artifacts: 'workloads/ovn-live-migration/index_data.json',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
-                    workloadInfo = readJSON file: "workloads/kube-burner/index_data.json"
+                    workloadInfo = readJSON file: "workloads/ovn-live-migration/index_data.json"
                     workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
                     if (RETURNSTATUS.toInteger() == 0) {
                         status = "PASS"
