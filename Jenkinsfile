@@ -510,7 +510,7 @@ pipeline {
                      set_arch_type = "aarch64"
                 }
 
-               upgrade_ci = build job: "scale-ci/e2e-benchmarking-multibranch-pipeline/upgrade", propagate: false,parameters:[
+               upgrade_ci = build job: "scale-ci/liqcui-e2e-benchmarking-multibranch-pipeline/upgrade", propagate: false,parameters:[
                    string(name: "BUILD_NUMBER", value: BUILD_NUMBER),string(name: "MAX_UNAVAILABLE", value: MAX_UNAVAILABLE),
                    string(name: "JENKINS_AGENT_LABEL", value: JENKINS_AGENT_LABEL),string(name: "UPGRADE_VERSION", value: UPGRADE_VERSION),
                    string(name: "ARCH_TYPE", value: set_arch_type),
