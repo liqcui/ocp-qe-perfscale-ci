@@ -133,6 +133,11 @@ pipeline {
           defaultValue: true,
           description: 'Value to enable kube-burner index'
       )
+      booleanParam(
+          name: 'EnableAutoScaler',
+          defaultValue: false,
+          description: 'Value to enable kube-burner index'
+      )      
       string(
           name: 'VARIABLE',
           defaultValue: '10', 
@@ -619,6 +624,7 @@ pipeline {
                         export WORKLOAD=ovn-live-migration
                         export ONLY_POST_CHECKING
                         export EnableIndex
+                        export EnableAutoScaler
                         ./run.sh |& tee "kube-burner.out"
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
