@@ -136,8 +136,13 @@ pipeline {
       booleanParam(
           name: 'EnableAutoScaler',
           defaultValue: false,
-          description: 'Value to enable kube-burner index'
-      )      
+          description: 'Value to enable EnableAutoScaler'
+      )   
+      booleanParam(
+          name: 'EnableIngressController',
+          defaultValue: false,
+          description: 'Value to enable EnableIngressController'
+      )         
       string(
           name: 'VARIABLE',
           defaultValue: '10', 
@@ -625,6 +630,7 @@ pipeline {
                         export ONLY_POST_CHECKING
                         export EnableIndex
                         export EnableAutoScaler
+                        export EnableIngressController
                         ./run.sh |& tee "kube-burner.out"
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
