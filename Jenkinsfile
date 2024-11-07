@@ -632,12 +632,15 @@ pipeline {
                         export EnableAutoScaler
                         export EnableIngressController
                         ./run.sh |& tee "kube-burner.out"
+                    ''')
+                        sh(returnStatus: true, script: '''
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
                         file_loc=$folder_name"*"
-                        cp $file_loc .
+                        cd workloads/ovn-live-migration
                         ls
-                    ''')
+                        cp $file_loc .
+                        ''')                    
                     archiveArtifacts(
                         artifacts: 'workloads/ovn-live-migration/kube-burner.out',
                         allowEmptyArchive: true,
