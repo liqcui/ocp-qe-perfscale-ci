@@ -418,7 +418,7 @@ pipeline {
                 target: 'flexy-artifacts'
             )
             script {
-                buildinfo = readYaml file: "flexy-artifacts/BUILDINFO.yml"
+                buildinfo = readYaml file: "flexy-artifacts/cluster.ini"
                 currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}-${params.WORKLOAD}"
                 currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
                 buildinfo.params.each { env.setProperty(it.key, it.value) }
@@ -595,7 +595,7 @@ pipeline {
                 target: 'flexy-artifacts'
             )
             script {
-                buildinfo = readYaml file: "flexy-artifacts/BUILDINFO.yml"
+                buildinfo = readYaml file: "flexy-artifacts/cluster.ini"
                 currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}-${params.WORKLOAD}"
                 currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
                 buildinfo.params.each { env.setProperty(it.key, it.value) }
@@ -620,6 +620,7 @@ pipeline {
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
                         if [[ $IF_OSD_GCP == "true" ]];then
+
                         echo -----------------------------------
                         echo WORKSPACE is $WORKSPACE/
                         ls -l -R $WORKSPACE/
