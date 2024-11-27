@@ -42,7 +42,12 @@ pipeline {
           name: 'BUILD_NUMBER',
           defaultValue: '',
           description: 'Build number of job that has installed the cluster.'
-      )      
+      )
+      booleanParam(
+        name: 'IF_OSD_GCP',
+        defaultValue: false,
+        description: 'This variable will test on osd gcp'
+      )         
       separator(
         name: "UPGRADE_INFO",
         sectionHeader: "Upgrade Options",
@@ -610,8 +615,11 @@ pipeline {
                         export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
-                        if [[ $BUILD_NUMBER == "osd-gcp" ]];then
+                        if [[ $IF_OSD_GCP == "true" ]];then
                         ls -l -R /home/git/workspace/ocm-jenkins
+                        echo -----------------------------------
+                        echo $WORKSPACE/
+                        ls -l -R $WORKSPACE/
                         else
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         fi
