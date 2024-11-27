@@ -418,12 +418,6 @@ pipeline {
                 target: 'flexy-artifacts'
             )
             script {
-                buildinfo = readYaml file: "flexy-artifacts/cluster.ini"
-                currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}-${params.WORKLOAD}"
-                currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
-                buildinfo.params.each { env.setProperty(it.key, it.value) }
-            }
-            script {
                 if (params.EMAIL_ID_OVERRIDE != '') {
                     env.EMAIL_ID_FOR_RESULTS_SHEET = params.EMAIL_ID_OVERRIDE
                 }
@@ -594,12 +588,6 @@ pipeline {
                 selector: specific(params.BUILD_NUMBER),
                 target: 'flexy-artifacts'
             )
-            script {
-                buildinfo = readYaml file: "flexy-artifacts/cluster.ini"
-                currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}-${params.WORKLOAD}"
-                currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
-                buildinfo.params.each { env.setProperty(it.key, it.value) }
-            }
             script {
                 if (params.EMAIL_ID_OVERRIDE != '') {
                     env.EMAIL_ID_FOR_RESULTS_SHEET = params.EMAIL_ID_OVERRIDE
