@@ -442,11 +442,15 @@ pipeline {
                         export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
-                        if [[ $BUILD_NUMBER == "osd-gcp" ]];then
+                        mkdir -p ~/.kube
+                        if [[ $IF_OSD_GCP == "true" ]];then
                         ls -l -R /home/git/workspace/ocm-jenkins
+                        echo -----------------------------------
+                        echo $WORKSPACE/
+                        ls -l -R $WORKSPACE/
                         else
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
-                        fi                  
+                        fi                
                         export CHURN_DURATION=${CHURN_DURATION:-10m}
                         export CHURN_DELAY=${CHURN_DELAY:-60s}
                         export CHURN_PERCENT=${CHURN_PERCENT:-10}
