@@ -413,7 +413,7 @@ pipeline {
             copyArtifacts(
                 filter: '',
                 fingerprintArtifacts: true,
-                projectName: 'ocp-common/Flexy-install',
+                projectName: 'ocm/ocm-profile-ci',
                 selector: specific(params.BUILD_NUMBER),
                 target: 'flexy-artifacts'
             )
@@ -590,7 +590,7 @@ pipeline {
             copyArtifacts(
                 filter: '',
                 fingerprintArtifacts: true,
-                projectName: 'ocp-common/Flexy-install',
+                projectName: 'ocm/ocm-profile-ci',
                 selector: specific(params.BUILD_NUMBER),
                 target: 'flexy-artifacts'
             )
@@ -620,9 +620,8 @@ pipeline {
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
                         if [[ $IF_OSD_GCP == "true" ]];then
-                        ls -l -R /home/git/workspace/ocm-jenkins
                         echo -----------------------------------
-                        echo $WORKSPACE/
+                        echo WORKSPACE is $WORKSPACE/
                         ls -l -R $WORKSPACE/
                         else
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
