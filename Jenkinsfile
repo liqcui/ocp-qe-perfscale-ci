@@ -438,8 +438,8 @@ pipeline {
                         mkdir -p ~/.kube
                         mkdir -p ~/.kube
                         if [[ $IF_OSD_GCP == "true" ]];then
-                        ls -l -R /home/git/workspace/ocm-jenkins
                         echo -----------------------------------
+                        ls -l -R /home/jenkins/
                         echo $WORKSPACE/
                         ls -l -R $WORKSPACE/
                         else
@@ -608,10 +608,10 @@ pipeline {
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
                         if [[ $IF_OSD_GCP == "true" ]];then
-
                         echo -----------------------------------
                         echo WORKSPACE is $WORKSPACE/
                         ls -l -R $WORKSPACE/
+                        ls -l -R /home/jenkins/
                         else
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         fi
