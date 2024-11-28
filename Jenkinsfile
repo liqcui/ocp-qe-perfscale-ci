@@ -222,7 +222,7 @@ pipeline {
     stage('Run Storage-Perf Test'){    
         agent {
           kubernetes {
-            cloud 'PSI OCP-C1 agents'
+            cloud 'PSI GPC agents'
             yaml """\
               apiVersion: v1
               kind: Pod
@@ -232,7 +232,7 @@ pipeline {
               spec:
                 containers:
                 - name: "jnlp"
-                  image: "image-registry.openshift-image-registry.svc:5000/aosqe/cucushift:${JENKINS_AGENT_LABEL}-rhel8"
+                  image: "images.paas.redhat.com/aos-qe-ci/jenkins-agent-rhel8:cucushift-${JENKINS_AGENT_LABEL}"
                   resources:
                     requests:
                       memory: "8Gi"
