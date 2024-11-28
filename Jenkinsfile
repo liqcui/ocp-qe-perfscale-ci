@@ -73,13 +73,6 @@ pipeline {
             target: 'flexy-artifacts'
         )
         script {
-          buildinfo = readYaml file: "flexy-artifacts/BUILDINFO.yml"
-          currentBuild.displayName = "${currentBuild.displayName}-${params.BUILD_NUMBER}"
-          currentBuild.description = "Copying Artifact from Flexy-install build <a href=\"${buildinfo.buildUrl}\">Flexy-install#${params.BUILD_NUMBER}</a>"
-          buildinfo.params.each { env.setProperty(it.key, it.value) }
-        }
-
-        script {
           RETURNSTATUS = sh(returnStatus: true, script: '''
             # Get ENV VARS Supplied by the user to this job and store in .env_override
             echo "$ENV_VARS" > .env_override
