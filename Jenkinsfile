@@ -65,13 +65,14 @@ pipeline {
           userRemoteConfigs: [[url: GIT_URL ]
           ]])
 
-        copyArtifacts(
-            filter: '',
-            fingerprintArtifacts: true,
-            projectName: 'ocp-common/Flexy-install',
-            selector: specific(params.BUILD_NUMBER),
-            target: 'flexy-artifacts'
+          copyArtifacts(
+                filter: '',
+                fingerprintArtifacts: true,
+                projectName: 'ocm/ocm-profile-ci',
+                selector: specific(params.BUILD_NUMBER),
+                target: 'flexy-artifacts'
         )
+        
         script {
           RETURNSTATUS = sh(returnStatus: true, script: '''
             # Get ENV VARS Supplied by the user to this job and store in .env_override
