@@ -438,7 +438,7 @@ pipeline {
                         mkdir -p ~/.kube
                         mkdir -p ~/.kube
                         if [[ $IF_OSD_GCP == "true" ]];then
-                        cp $WORKSPACE/flexy-artifacts/output/perfscale/osd-ccs-gcp-ad/config ~/.kube/config
+                        cp $WORKSPACE/flexy-artifacts/output/perfscale/osd-ccs-gcp-ad/kubeconfig ~/.kube/config
                         else
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         fi                
@@ -605,7 +605,7 @@ pipeline {
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
                         if [[ $IF_OSD_GCP == "true" ]];then
-                        cp $WORKSPACE/flexy-artifacts/output/perfscale/osd-ccs-gcp-ad/config ~/.kube/config
+                        cp $WORKSPACE/flexy-artifacts/output/perfscale/osd-ccs-gcp-ad/kubeconfig ~/.kube/config
                         else
                         cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
                         fi                
