@@ -80,7 +80,11 @@ pipeline {
             # Export those env vars so they could be used by CI Job
             set -a && source .env_override && set +a
             mkdir -p ~/.kube
-            cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+            if [[ $IF_OSD_GCP == "true" ]];then
+                 cp $WORKSPACE/flexy-artifacts/output/perfscale/osd-ccs-gcp-ad/kubeconfig ~/.kube/config
+            else
+                 cp $WORKSPACE/flexy-artifacts/workdir/install-dir/auth/kubeconfig ~/.kube/config
+            fi   
             oc config view
             oc projects
             ls -ls ~/.kube/
