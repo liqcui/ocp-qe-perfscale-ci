@@ -1,14 +1,24 @@
 approvers:
-- mffiedler
-- qiliRedHat
-- paigerube14
+- afcollins
 - jtaleric
+- josecastillolema
+- mffiedler
+- paigerube14
+- qiliredhat
+- rsevilla87
+- svetsa-rh
 reviewers:
-- qiliRedHat
 - mffiedler
 - paigerube14
 - rpattath
 - skordas
-- memodi
 - jtaleric
 - svetsa-rh
+- shahsahil264
+- liqcui
+- krishvoor
+- afcollins
+- rsevilla87
+- vishnuchalla
+- sachinninganure
+- chaitanyaenr
