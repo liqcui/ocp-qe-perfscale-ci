@@ -375,7 +375,7 @@ pipeline {
     stage('Run Kube-Burner Test'){    
         agent {
           kubernetes {
-            cloud 'PSI OCP-C1 agents'
+            cloud 'PSI GPC agents'
             yaml """\
               apiVersion: v1
               kind: Pod
