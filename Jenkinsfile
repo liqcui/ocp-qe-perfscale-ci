@@ -434,6 +434,7 @@ pipeline {
                         cp $GSHEET_KEY_LOCATION $WORKSPACE/.gsheet.json
                         export GSHEET_KEY_LOCATION=$WORKSPACE/.gsheet.json
                         export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
+                        echo $ES_USERNAME:$ES_PASSWORD
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
                    
@@ -602,6 +603,7 @@ pipeline {
                         cp $GSHEET_KEY_LOCATION $WORKSPACE/.gsheet.json
                         export GSHEET_KEY_LOCATION=$WORKSPACE/.gsheet.json
                         export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
+                        echo $ES_USERNAME:$ES_PASSWORD                       
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
                         if [[ $IF_OSD_GCP == "true" ]];then
