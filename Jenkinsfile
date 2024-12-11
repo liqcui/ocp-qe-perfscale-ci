@@ -375,7 +375,7 @@ pipeline {
     stage('Run Kube-Burner Test'){    
         agent {
           kubernetes {
-            cloud 'PSI GPC agents'
+            cloud 'PSI OCP-C1 agents'
             yaml """\
               apiVersion: v1
               kind: Pod
@@ -544,7 +544,7 @@ pipeline {
     stage('Run OVN Live Migration'){    
         agent {
           kubernetes {
-            cloud 'PSI GPC agents'
+            cloud 'PSI OCP-C1 agents'
             yaml """\
               apiVersion: v1
               kind: Pod
