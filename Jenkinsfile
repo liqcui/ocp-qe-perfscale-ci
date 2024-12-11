@@ -526,7 +526,6 @@ pipeline {
     } 
     stage('Run OVN Live Migration'){    
         agent { label params['JENKINS_AGENT_LABEL'] }
-        }
         when {
             expression { params.OVN_LIVE_MIGRATION == true}
         }
