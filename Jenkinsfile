@@ -373,7 +373,32 @@ pipeline {
         }
     } 
     stage('Run Kube-Burner Test'){    
-        agent { label params['JENKINS_AGENT_LABEL'] }  
+        agent {
+          kubernetes {
+            cloud 'openshift qe jenkins agents'
+            yaml """\
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                labels:
+                  label: ${JENKINS_AGENT_LABEL}
+              spec:
+                containers:
+                - name: "jnlp"
+                  image: "images.paas.redhat.com/aos-qe-ci/jenkins-agent-rhel8:cucushift-${JENKINS_AGENT_LABEL}"
+                  resources:
+                    requests:
+                      memory: "8Gi"
+                      cpu: "2"
+                    limits:
+                      memory: "8Gi"
+                      cpu: "2"
+                  imagePullPolicy: Always
+                  workingDir: "/home/jenkins/ws"
+                  tty: true
+              """.stripIndent()
+          }
+        }
         when {
            expression { params.RUN_KUBE_BURNER_OCP == true }
         }        
@@ -525,7 +550,32 @@ pipeline {
           }
     } 
     stage('Run OVN Live Migration'){    
-        agent { label params['JENKINS_AGENT_LABEL'] }
+        agent {
+          kubernetes {
+            cloud 'openshift qe jenkins agents'
+            yaml """\
+              apiVersion: v1
+              kind: Pod
+              metadata:
+                labels:
+                  label: ${JENKINS_AGENT_LABEL}
+              spec:
+                containers:
+                - name: "jnlp"
+                  image: "images.paas.redhat.com/aos-qe-ci/jenkins-agent-rhel8:cucushift-${JENKINS_AGENT_LABEL}"
+                  resources:
+                    requests:
+                      memory: "8Gi"
+                      cpu: "2"
+                    limits:
+                      memory: "8Gi"
+                      cpu: "2"
+                  imagePullPolicy: Always
+                  workingDir: "/home/jenkins/ws"
+                  tty: true
+              """.stripIndent()
+          }
+        }
         when {
             expression { params.OVN_LIVE_MIGRATION == true}
         }
