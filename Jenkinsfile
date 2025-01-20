@@ -440,7 +440,7 @@ pipeline {
                         cp $GSHEET_KEY_LOCATION $WORKSPACE/.gsheet.json
                         export GSHEET_KEY_LOCATION=$WORKSPACE/.gsheet.json
                         export EMAIL_ID_FOR_RESULTS_SHEET=$EMAIL_ID_FOR_RESULTS_SHEET
-                        echo $ES_USERNAME:$ES_PASSWORD
+                        
                         export ES_SERVER="https://$ES_USERNAME:$ES_PASSWORD@search-ocp-qe-perf-scale-test-elk-hcm7wtsqpxy7xogbu72bor4uve.us-east-1.es.amazonaws.com"
                         mkdir -p ~/.kube
                         if [[ $IF_OSD_GCP == "true" ]];then
@@ -462,7 +462,7 @@ pipeline {
                         
                         set -o pipefail
  
-                        cd workloads/kube-burner-ocp-wrapper
+                        cd workloads/mixed-scenario
                         pip install jq
                         if [[ $CHURN == true ]]; then
                             echo "churn true"
@@ -482,23 +482,23 @@ pipeline {
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
                         file_loc=$folder_name"*"
-                        cd workloads/kube-burner-ocp-wrapper
+                        cd workloads/mixed-scenario
                         ls
                         cp $file_loc .
                         ''')
                     archiveArtifacts(
-                        artifacts: 'workloads/kube-burner-ocp-wrapper/kube-burner-ocp.out',
+                        artifacts: 'workloads/mixed-scenario/kube-burner-ocp.out',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
                     archiveArtifacts(
-                        artifacts: 'workloads/kube-burner-ocp-wrapper/index_data.json',
+                        artifacts: 'workloads/mixed-scenario/index_data.json',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
-                    workloadInfo = readJSON file: "workloads/kube-burner-ocp-wrapper/index_data.json"
+                    workloadInfo = readJSON file: "workloads/mixed-scenario/index_data.json"
                     workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
                     // update build description fields
                     // UUID
