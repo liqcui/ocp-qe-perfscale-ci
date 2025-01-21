@@ -144,9 +144,9 @@ pipeline {
           description: 'Value to enable EnableAutoScaler'
       )   
       booleanParam(
-          name: 'EnableIngressController',
+          name: 'ENABLE_INGRESS_CONTROLLER',
           defaultValue: false,
-          description: 'Value to enable EnableIngressController'
+          description: 'Value to enable multiple IngressController'
       )         
       string(
           name: 'VARIABLE',
@@ -650,7 +650,7 @@ pipeline {
                         export ONLY_POST_CHECKING
                         export EnableIndex
                         export EnableAutoScaler
-                        export EnableIngressController
+                        export ENABLE_INGRESS_CONTROLLER
                         ./run.sh |& tee "kube-burner.out"
                     ''')
                         sh(returnStatus: true, script: '''
