@@ -476,7 +476,7 @@ pipeline {
                         export GC=${CLEANUP}
 
                         export EXTRA_FLAGS+=" --gc-metrics=true --profile-type=$PROFILE_TYPE"
-                        bash +x ./run.sh |& tee "kube-burner-ocp.out"
+                        ./run.sh |& tee "kube-burner-ocp.out"
                         ''')
                         sh(returnStatus: true, script: '''
                         ls /tmp
