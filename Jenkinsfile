@@ -432,8 +432,7 @@ pipeline {
                 }
                 withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
                     file(credentialsId: 'sa-google-sheet', variable: 'GSHEET_KEY_LOCATION')]) {
-                    RETURNSTATUS = sh(returnStatus: true, script: '''
-                        set +x
+                    RETURNSTATUS = sh(returnStatus: true,returnStdout: true, script: '''
                         # Get ENV VARS Supplied by the user to this job and store in .env_override
                         echo "$ENV_VARS" > .env_override
                         # Export those env vars so they could be used by CI Job
@@ -477,7 +476,7 @@ pipeline {
                         export GC=${CLEANUP}
 
                         export EXTRA_FLAGS+=" --gc-metrics=true --profile-type=$PROFILE_TYPE"
-                        ./run.sh |& tee "kube-burner-ocp.out"
+                        bash +x ./run.sh |& tee "kube-burner-ocp.out"
                         ''')
                         sh(returnStatus: true, script: '''
                         ls /tmp
