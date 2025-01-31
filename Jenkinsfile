@@ -433,6 +433,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'elasticsearch-perfscale-ocp-qe', usernameVariable: 'ES_USERNAME', passwordVariable: 'ES_PASSWORD'),
                     file(credentialsId: 'sa-google-sheet', variable: 'GSHEET_KEY_LOCATION')]) {
                     RETURNSTATUS = sh(returnStatus: true, script: '''
+                        set +x
                         # Get ENV VARS Supplied by the user to this job and store in .env_override
                         echo "$ENV_VARS" > .env_override
                         # Export those env vars so they could be used by CI Job
