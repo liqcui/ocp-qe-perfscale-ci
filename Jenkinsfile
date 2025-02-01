@@ -462,7 +462,7 @@ pipeline {
                         
                         set -o pipefail
  
-                        cd workloads/mixed-scenario
+                        cd workloads/mixed-workload
                         pip install jq
                         if [[ $CHURN == true ]]; then
                             echo "churn true"
@@ -482,23 +482,23 @@ pipeline {
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
                         file_loc=$folder_name"*"
-                        cd workloads/mixed-scenario
+                        cd workloads/mixed-workload
                         ls
                         cp $file_loc .
                         ''')
                     archiveArtifacts(
-                        artifacts: 'workloads/mixed-scenario/kube-burner-ocp.out',
+                        artifacts: 'workloads/mixed-workload/kube-burner-ocp.out',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
                     archiveArtifacts(
-                        artifacts: 'workloads/mixed-scenario/index_data.json',
+                        artifacts: 'workloads/mixed-workload/index_data.json',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
-                    workloadInfo = readJSON file: "workloads/mixed-scenario/index_data.json"
+                    workloadInfo = readJSON file: "workloads/mixed-workload/index_data.json"
                     workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
                     // update build description fields
                     // UUID
@@ -662,17 +662,17 @@ pipeline {
                         cp $file_loc .
                         ''')                    
                     archiveArtifacts(
-                        artifacts: 'workloads/mixed-scenario/kube-burner.out',
+                        artifacts: 'workloads/mixed-workload/kube-burner.out',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
                     archiveArtifacts(
-                        artifacts: 'workloads/mixed-scenario/index_data.json',
+                        artifacts: 'workloads/mixed-workload/index_data.json',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
-                    workloadInfo = readJSON file: "workloads/mixed-scenario/index_data.json"
+                    workloadInfo = readJSON file: "workloads/mixed-workload/index_data.json"
                     workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
                     if (RETURNSTATUS.toInteger() == 0) {
                         status = "PASS"
