@@ -632,7 +632,7 @@ pipeline {
                         ls -ls ~/.kube/
                         pwd
                         ls -l
-                        cd workloads/ovn-live-migration
+                        cd workloads/mixed-scenario
                         python3.9 --version
                         python3.9 -m pip install virtualenv
                         python3.9 -m virtualenv venv3
@@ -646,7 +646,7 @@ pipeline {
                         pwd
                         echo "workspace $WORKSPACE"
                         unset WORKLOAD
-                        export WORKLOAD=ovn-live-migration
+                        export WORKLOAD=mixed-scenario
                         export ONLY_POST_CHECKING
                         export EnableIndex
                         export EnableAutoScaler
@@ -657,22 +657,22 @@ pipeline {
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
                         file_loc=$folder_name"*"
-                        cd workloads/ovn-live-migration
+                        cd workloads/mixed-scenario
                         ls
                         cp $file_loc .
                         ''')                    
                     archiveArtifacts(
-                        artifacts: 'workloads/ovn-live-migration/kube-burner.out',
+                        artifacts: 'workloads/mixed-scenario/kube-burner.out',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
                     archiveArtifacts(
-                        artifacts: 'workloads/ovn-live-migration/index_data.json',
+                        artifacts: 'workloads/mixed-scenario/index_data.json',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
-                    workloadInfo = readJSON file: "workloads/ovn-live-migration/index_data.json"
+                    workloadInfo = readJSON file: "workloads/mixed-scenario/index_data.json"
                     workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
                     if (RETURNSTATUS.toInteger() == 0) {
                         status = "PASS"
