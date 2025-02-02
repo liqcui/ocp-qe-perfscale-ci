@@ -474,6 +474,10 @@ pipeline {
                             export EXTRA_FLAGS="$EXTRA_FLAGS --pods-per-node=$VARIABLE"
                         fi
                         export GC=${CLEANUP}
+                        export ONLY_POST_CHECKING
+                        export EnableIndex
+                        export EnableAutoScaler
+                        export ENABLE_INGRESS_CONTROLLER
 
                         export EXTRA_FLAGS+=" --gc-metrics=true --profile-type=$PROFILE_TYPE"
                         ./run.sh |& tee "kube-burner-ocp.out"
@@ -646,11 +650,12 @@ pipeline {
                         pwd
                         echo "workspace $WORKSPACE"
                         unset WORKLOAD
-                        export WORKLOAD=mixed-scenario
+                        export WORKLOAD=sdn-ovn-migration
                         export ONLY_POST_CHECKING
                         export EnableIndex
                         export EnableAutoScaler
                         export ENABLE_INGRESS_CONTROLLER
+                    
                         ./run.sh |& tee "kube-burner.out"
                     ''')
                         sh(returnStatus: true, script: '''
