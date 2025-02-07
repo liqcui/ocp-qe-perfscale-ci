@@ -217,6 +217,7 @@ pipeline {
           Checking this parameter box is valid only when SCALE_UP is greater than 0.
           '''
       )
+      booleanParam(name:'IF_CREATE_WORKLOAD_NODE', defaultValue:true, description:'If set to true, creating workload machineset and nodes')      
       separator(
         name: "Save Result Options",
         sectionHeader: "Save Result Options",
