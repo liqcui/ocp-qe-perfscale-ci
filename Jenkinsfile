@@ -462,7 +462,7 @@ pipeline {
                         
                         set -o pipefail
  
-                        cd workloads/kube-burner-ocp-wrapper
+                        cd workloads/sdn-ovn-migration
                         pip install jq
                         if [[ $CHURN == true ]]; then
                             echo "churn true"
@@ -482,23 +482,23 @@ pipeline {
                         ls /tmp
                         folder_name=$(ls -t -d /tmp/*/ | head -1)
                         file_loc=$folder_name"*"
-                        cd workloads/kube-burner-ocp-wrapper
+                        cd workloads/sdn-ovn-migration
                         ls
                         cp $file_loc .
                         ''')
                     archiveArtifacts(
-                        artifacts: 'workloads/kube-burner-ocp-wrapper/kube-burner-ocp.out',
+                        artifacts: 'workloads/sdn-ovn-migration/kube-burner-ocp.out',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
                     archiveArtifacts(
-                        artifacts: 'workloads/kube-burner-ocp-wrapper/index_data.json',
+                        artifacts: 'workloads/sdn-ovn-migration/index_data.json',
                         allowEmptyArchive: true,
                         fingerprint: true
                     )
 
-                    workloadInfo = readJSON file: "workloads/kube-burner-ocp-wrapper/index_data.json"
+                    workloadInfo = readJSON file: "workloads/sdn-ovn-migration/index_data.json"
                     workloadInfo.each { env.setProperty(it.key.toUpperCase(), it.value) }
                     // update build description fields
                     // UUID
