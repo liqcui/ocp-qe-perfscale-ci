@@ -632,7 +632,7 @@ pipeline {
                         ls -ls ~/.kube/
                         pwd
                         ls -l
-                        cd workloads/ovn-live-migration
+                        cd workloads/sdn-ovn-migration
                         python3.9 --version
                         python3.9 -m pip install virtualenv
                         python3.9 -m virtualenv venv3
@@ -646,7 +646,7 @@ pipeline {
                         pwd
                         echo "workspace $WORKSPACE"
                         unset WORKLOAD
-                        export WORKLOAD=ovn-live-migration
+                        export WORKLOAD=sdn-ovn-migration
                         export ONLY_POST_CHECKING
                         export EnableIndex
                         export EnableAutoScaler
