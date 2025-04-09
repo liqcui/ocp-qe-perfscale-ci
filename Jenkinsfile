@@ -272,7 +272,7 @@ pipeline {
 			            pip3 install elasticsearch==7.10.0
                         pip3 install "numpy<2"
                         pip3 install requests
-                        pip3 install urllib3==2.0.2
+                        #pip3 install urllib3==2.0.2
                         python --version
                         pip3 list
                         export WORKLOAD=${WORKLOAD}
