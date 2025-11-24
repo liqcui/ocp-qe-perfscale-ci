@@ -46,7 +46,7 @@ pipeline {
       )
       choice(
           name: 'WORKLOAD',
-          choices: ["cluster-density-v2", "node-density", "node-density-heavy","node-density-cni","pvc-density","networkpolicy-matchexpressions","networkpolicy-matchlabels","networkpolicy-multitenant","crd-scale"],
+          choices: ["cluster-density-v2", "node-density", "node-density-heavy","node-density-cni","pvc-density","networkpolicy-matchexpressions","networkpolicy-matchlabels","networkpolicy-multitenant","crd-scale","udn-density-pods"],
           description: 'Type of kube-burner job to run'
       )
       booleanParam(
