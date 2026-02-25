@@ -190,7 +190,7 @@ pipeline {
               env
               set -x
               SECONDS=0
-              curl -o openshift-qe-move-pods-infra-commands.sh https://github.com/openshift/release/blob/main/ci-operator/step-registry/openshift-qe/move-pods-infra/openshift-qe-move-pods-infra-commands.sh
+              curl -o openshift-qe-move-pods-infra-commands.sh https://raw.githubusercontent.com/openshift/release/refs/heads/main/ci-operator/step-registry/openshift-qe/move-pods-infra/openshift-qe-move-pods-infra-commands.sh
               #Compatible with openshift/release
               export KUBECONFIG=~/.kube/config
               export SHARED_DIR=${SHARED_DIR:/tmp/}
